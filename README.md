@@ -3,7 +3,7 @@
 
 **DSMLC Datathon 2026 · Chirality Research × Canary Labs · dataset: Strathcona Resources**
 
-**Team:** _<name 1>, <name 2>, <name 3>, <name 4>_  
+**Team:** _Yiming Jin, Ben Bui, Ahron Ramos, Jade Huang_  
 **Video (5 min):** _<link>_ · **Slides:** _<link>_
 
 ---
