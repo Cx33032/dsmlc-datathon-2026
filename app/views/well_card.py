@@ -86,15 +86,34 @@ pm3 = ui.price_m3()
 lam = ev.repairs_365
 avoided, net = well_net(lam, econ, pm3)
 _, net_hi = well_net(lam, econ, pm3, hr=econ["hr_chronic_hi"])
+hz, hr = econ["horizon_yr"], econ["hr_chronic"]
+fc = fail_cost(econ, pm3)
 e1, e2, e3, e4 = st.columns(4)
 e1.metric("Rod repairs, last 12 months", lam)
-e2.metric(f"Repairs a new string avoids ({econ['horizon_yr']:.0f} yr)", f"{avoided:.1f}",
-          help=f"repairs per year × (1 − hazard ratio {econ['hr_chronic']:.2f}) × {econ['horizon_yr']:.0f} years")
+e2.metric(f"Repairs a new string avoids ({hz:.0f} yr)", f"{avoided:.1f}",
+          f"= {lam} × (1 − {hr:.3f}) × {hz:.0f}", delta_arrow="off", delta_color="off",
+          help=f"repairs per year × (1 − hazard ratio {hr:.2f}) × {hz:.0f} years. Worked out below.")
 e3.metric("Net value of a new string", ui.money(net), f"{ui.money(net_hi)} if the effect is at its weakest",
           delta_arrow="off", delta_color="off")
-e4.metric("Cost of one more rod failure", ui.money(fail_cost(econ, pm3)),
-          f"job {ui.money(econ['repair_job_cost'])} + lost oil", delta_arrow="off", delta_color="off")
-ui.explain("Dollar values follow the oil price in the sidebar.")
+e4.metric("Cost of one more rod failure", ui.money(fc),
+          f"job {ui.money(econ['repair_job_cost'])} + lost oil {ui.money(fc - econ['repair_job_cost'])}",
+          delta_arrow="off", delta_color="off")
+with st.expander("How these four numbers are worked out", icon=":material/calculate:", expanded=True):
+    a, b = st.columns(2)
+    with a:
+        st.markdown(f"**Repairs a new string avoids = repairs per year × (1 − hazard ratio) × years of benefit**  \n"
+                    f"= {lam} × (1 − {hr:.3f}) × {hz:.0f} = **{avoided:.2f} repairs**")
+        st.markdown(f"- **{lam} repairs per year**: this well's rod repairs in the 12 months to {econ['asof']}. We "
+                    "assume it keeps failing at that rate if it only gets repairs.\n"
+                    + ui.new_string_md(econ).split("\n", 1)[1] + "\n"
+                    f"- **{hz:.0f} years**: we count the benefit for {hz:.0f} years after the new string goes in.")
+    with b:
+        st.markdown(ui.failure_cost_md(econ, pm3))
+        st.markdown(f"**Net value of a new string = repairs avoided × cost of one failure − extra cost of a new string**  \n"
+                    f"= {avoided:.2f} × {ui.cad(fc)} − {ui.cad(econ['inc_cost'])} = **{ui.cad(net)}**")
+        st.markdown(ui.new_string_md(econ).split("\n", 1)[0])
+    st.caption(f"At the weakest plausible effect (hazard ratio {econ['hr_chronic_hi']:.2f}) the net value is "
+               f"{ui.cad(net_hi)}. Dollar values follow the oil price in the sidebar.")
 
 tab_hist, tab_notes, tab_trend = st.tabs(["Failure history & break depths", "What the crews wrote", "Recent trends"])
 with tab_hist:

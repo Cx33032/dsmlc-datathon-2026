@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 import ui
-from src.economics import breakeven, sensitivity, well_net, worst_case_wells
+from src.economics import breakeven, fail_cost, sensitivity, well_net, worst_case_wells
 
 st.title("Replacement program")
 ui.intro("Which wells should get a whole new rod string at their next failure instead of another repair, and is it "
@@ -60,10 +60,42 @@ be = breakeven(econ, pm3, hr=hr, cost_mult=cm_, horizon=hz, lost_oil=lost_on)
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Wells", len(prog), f"{int(prog['repairs_last365'].sum())} rod repairs last year", delta_arrow="off",
           delta_color="off")
-m2.metric(f"Net value over {hz:.0f} yr", ui.money(prog["net"].sum()))
+m2.metric(f"Net value over {hz:.0f} yr", ui.money(prog["net"].sum()),
+          help="Money saved on repairs and lost oil, minus the extra cost of the new strings. Worked out below.")
 m3.metric("Pays back above (failures/yr)", f"{be:.1f}", help="A new string pays for itself on any well failing more often "
                                                            "than this.")
 m4.metric("Wells worth replacing", f"{int((prog['net'] > 0).sum())} of {len(prog)}")
+
+# ---------------------------------------------------------------- what "net value" means
+fc = fail_cost(econ, pm3, lost_on)
+gross = float(prog["avoided"].sum() * fc)
+capex = float(econ["inc_cost"] * cm_ * len(prog))
+with st.expander(f"What 'net value over {hz:.0f} yr' means", icon=":material/calculate:", expanded=True):
+    a, b = st.columns([3, 2])
+    with a:
+        st.markdown(f"**For each well: net value = repairs a new string avoids over {hz:.0f} yr × cost of one failure − "
+                    "extra cost of a new string.** The headline adds that up over the wells shown.")
+        st.markdown(f"- **Repairs avoided** = the well's repairs last year × (1 − {hr:.3f}) × {hz:.0f} yr. Over these "
+                    f"{len(prog)} wells: {int(prog['repairs_last365'].sum())} repairs a year → "
+                    f"**{prog['avoided'].sum():,.0f} repairs avoided**.\n"
+                    f"- × **{ui.cad(fc)}** per failure = **{ui.cad(gross)}** of repairs and lost oil that never happen.\n"
+                    f"- − **{ui.cad(econ['inc_cost'] * cm_)}** extra per new string × {len(prog)} wells = "
+                    f"**{ui.cad(capex)}**.\n"
+                    f"- = **{ui.cad(gross - capex)}** net value over {hz:.0f} yr.")
+        st.markdown(ui.failure_cost_md(econ, pm3, lost_on))
+        st.markdown(ui.new_string_md(econ, cm_))
+        st.caption("'Net' = money saved minus money spent, not discounted. The stress-test settings above change every "
+                   "number here.")
+    with b:
+        fig = go.Figure(go.Waterfall(
+            x=["Failures avoided", "Extra cost of new strings", "Net value"], measure=["relative", "relative", "total"],
+            y=[gross / 1e6, -capex / 1e6, 0], text=[ui.money(gross), "-" + ui.money(capex), ui.money(gross - capex)],
+            textposition="outside", cliponaxis=False, connector=dict(line=dict(color=ui.GRAY, width=1)),
+            increasing=dict(marker=dict(color=ui.AQUA)), decreasing=dict(marker=dict(color=ui.CRITICAL)),
+            totals=dict(marker=dict(color=ui.BLUE)), hovertemplate="%{x}: %{y:.2f}M<extra></extra>"))
+        fig.update_layout(title=f"From savings to net value ({hz:.0f} yr, C$M)", yaxis_title="C$M", showlegend=False)
+        fig.update_yaxes(range=[min(0, (gross - capex) / 1e6 * 1.2), gross / 1e6 * 1.2])
+        ui.show(ui.style(fig, 320))
 
 # ---------------------------------------------------------------- ranked wells (replaces the table)
 st.subheader("Which wells first")
