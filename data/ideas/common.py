@@ -2,6 +2,7 @@
 
 Every script does:  sys.path.insert(0, <data/ideas>); import common
 """
+import os
 from pathlib import Path
 import duckdb
 import matplotlib
@@ -10,11 +11,29 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 ROOT = Path(__file__).resolve().parents[2]
-DATA = ROOT / "data"
+
+
+def _data_dir() -> Path:
+    """DATA_DIR env var wins; otherwise data/ if the parquets are there, else the repo root."""
+    if os.environ.get("DATA_DIR"):
+        return Path(os.environ["DATA_DIR"])
+    return ROOT / "data" if (ROOT / "data" / "daily_production.parquet").exists() else ROOT
+
+
+DATA = _data_dir()
 DAILY = (DATA / "daily_production.parquet").as_posix()
 JOBS = (DATA / "well_jobs.parquet").as_posix()
 FAILS = (DATA / "production_failures.parquet").as_posix()
 DOCS_IDEAS = ROOT / "docs" / "ideas"
+# IDEAS_OUT: where scripts write results/CSVs (build_artifacts.py points this at a private, gitignored dir)
+IDEAS_OUT = Path(os.environ["IDEAS_OUT"]) if os.environ.get("IDEAS_OUT") else None
+NO_CHARTS = os.environ.get("IDEAS_NO_CHARTS") == "1"
+
+
+def out_dir(script_file: str, idea: str) -> Path:
+    d = IDEAS_OUT / idea if IDEAS_OUT else Path(script_file).resolve().parent / "out"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
 
 # ------------------------------------------------------------------ price assumptions (cited in idea.md)
 # WTI: $83.45 USD/bbl, OilPriceAPI table for 2026-11-19 (https://www.oilpriceapi.com/live/wcs-crude-oil-price)
@@ -51,7 +70,7 @@ DATA_END = "2026-10-27"
 
 def con():
     c = duckdb.connect()
-    c.execute("SET memory_limit='6GB'")
+    c.execute(f"SET memory_limit='{os.environ.get('DUCKDB_MEMORY', '3GB')}'")
     return c
 
 
@@ -67,6 +86,9 @@ C1, C2, C3, C4, GREY = "#1f5f8b", "#d9822b", "#3a9d5d", "#b5443b", "#8c8c8c"
 
 
 def save(fig, idea_dir, name):
+    if NO_CHARTS:
+        plt.close(fig)
+        return
     out = DOCS_IDEAS / idea_dir / "assets"
     out.mkdir(parents=True, exist_ok=True)
     fig.savefig(out / name)

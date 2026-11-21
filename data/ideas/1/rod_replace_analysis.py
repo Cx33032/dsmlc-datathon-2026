@@ -20,8 +20,7 @@ import matplotlib.pyplot as plt
 from statsmodels.duration.hazard_regression import PHReg
 from statsmodels.duration.survfunc import SurvfuncRight
 
-OUT = Path(__file__).resolve().parent / "out"
-OUT.mkdir(exist_ok=True)
+OUT = cm.out_dir(__file__, "1")
 IDEA = "1"
 con = cm.con()
 cm.style()
@@ -325,3 +324,31 @@ ax.legend(frameon=False, loc="upper left")
 cm.save(fig, IDEA, "1d_break_even.png")
 
 (OUT / "results.txt").write_text("".join(lines), encoding="utf-8")
+
+# ------------------------------------------------------------------ machine-readable artifacts for the app
+import json  # noqa: E402
+ev[["uwi", "s", "e", "cost", "is_replace", "corod", "stick", "lost_m3", "prior365", "t_next", "event"]].to_parquet(OUT / "rod_events.parquet", index=False)
+tab.assign(prior_bin=tab.prior_bin.astype(str)).to_csv(OUT / "rate_by_history.csv", index=False)
+hr.rename_axis("term").reset_index().to_csv(OUT / "cox_all.csv", index=False)
+hrc.rename_axis("term").reset_index().to_csv(OUT / "cox_chronic.csv", index=False)
+pd.DataFrame(scen).to_csv(OUT / "sensitivity.csv", index=False)
+km = []
+for k, lab in enumerate(["repair", "new rod string"]):
+    g = mc_all[mc_all.is_replace == k]
+    sf = SurvfuncRight(g.t.astype(float), g.event.astype(float))
+    km.append(pd.DataFrame({"group": lab, "n": len(g), "t": sf.surv_times, "surv": sf.surv_prob}))
+pd.concat(km).to_csv(OUT / "km_chronic.csv", index=False)
+(OUT / "economics.json").write_text(json.dumps({
+    "oil_CAD_m3": cm.OIL_CAD_M3, "repair_job_cost": float(cost_rep_pos), "replace_job_cost": float(cost_rpl_pos),
+    "lost_m3_per_repair_mean": float(lost_rep_mean), "lost_m3_per_repair_median": float(lost_med),
+    "fail_cost": float(fail_cost), "inc_cost": float(inc_cost), "horizon_yr": H,
+    "hr_all": float(hr.loc["is_replace", "HR"]), "hr_all_lo": float(hr.loc["is_replace", "HR_lo"]),
+    "hr_all_hi": float(hr.loc["is_replace", "HR_hi"]),
+    "hr_chronic": float(hr_rep), "hr_chronic_lo": float(hrc.loc["is_replace", "HR_lo"]),
+    "hr_chronic_hi": float(hrc.loc["is_replace", "HR_hi"]), "breakeven": float(breakeven),
+    "r_repair": float(r_repair), "r_replace": float(r_replace),
+    "program_wells": int(len(prog)), "program_repairs": int(prog.repairs_last365.sum()),
+    "program_allin": float(prog.all_in_cost_last365_CAD.sum()), "program_net": float(prog.net_value_2y_CAD.sum()),
+    "program_net_hi": float((prog.repairs_last365 * (1 - hrc.loc["is_replace", "HR_hi"]) * H * fail_cost - inc_cost).sum()),
+    "asof": cm.DATA_END, "n_cox": int(len(m)), "events_cox": int(m.event.sum()),
+}, indent=2))
