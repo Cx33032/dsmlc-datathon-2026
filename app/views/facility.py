@@ -102,7 +102,7 @@ if st.session_state.get("f_pick") not in inc_ids:
 pick = f[f["incident"] == st.session_state["f_pick"]].iloc[0]
 
 # ---------------------------------------------------------------- lagging wells: the action list
-st.subheader("Which wells to check first")
+st.header("Which wells to check first")
 if fl.empty:
     st.caption("No well lagged in the selected incidents.")
 else:
@@ -182,7 +182,7 @@ else:
                        "give these wells a standing restart checklist.")
 
 # ---------------------------------------------------------------- incident timeline + restart curve
-st.subheader("How each restart went")
+st.header("How each restart went")
 
 
 def _from_timeline():
@@ -230,7 +230,7 @@ with right:
     ui.explain(f"Cause: {pick['main_cause']}. Wells still down in the red zone are lagging.")
 
 # ---------------------------------------------------------------- why facilities go down
-st.subheader("Why did the facilities go down?")
+st.header("Why did the facilities go down?")
 c_l, c_r = st.columns([3, 2])
 with c_l:
     by = (f.groupby("main_cause").agg(incidents=("incident", "size"), wells=("wells", "sum"),

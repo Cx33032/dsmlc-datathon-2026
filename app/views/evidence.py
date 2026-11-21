@@ -102,7 +102,8 @@ with st.container(border=True):
                     "- **Daily production:** one row per well per day, with downtime hours, reasons and pump readings.\n"
                     "- **Well jobs:** one row per job (15,610), with job type and cost.\n"
                     "- **Production failures:** one row per logged failure (2,873), with cause and crew comments.")
-    st.caption("Source: docs/Dataset_Handbook.md. The app reads only tables built from these files by "
+    st.caption("The app reads only tables built by build_artifacts.py --demo." if ui.is_demo() else
+               "Source: docs/Dataset_Handbook.md. The app reads only tables built from these files by "
                "build_artifacts.py.")
     st.page_link(ui.PAGES["limits"], label="See what the numbers cannot show: Assumptions & limits",
                  icon=":material/arrow_forward:")
@@ -129,7 +130,7 @@ with tab_q:
                "and asked: what share of all the oil those outages went on to lose did they account for?")
         c1, c2 = st.columns([1.4, 2])
         outcome = c1.segmented_control(
-            "Measure of lost oil", ["reconstructed exposure", "recorded loss"], default="reconstructed exposure",
+            "Measure of lost oil", ["reconstructed exposure", "recorded loss"], required=True, default="reconstructed exposure",
             key="ev_outcome", help="Reconstructed exposure = extra hours down × the well's normal rate (our estimate). "
                                    "Recorded loss = the lost-oil number the operator entered.") or "reconstructed exposure"
         kk = c2.select_slider("Outages reviewed per day (K)", options=sorted(rep["K"].unique()), value=2, key="ev_k")
@@ -181,7 +182,7 @@ with tab_rod:
         names = {"is_replace": "new string instead of a repair", "log_prior": "more repairs in the prior year",
                  "rpm100": "pump speed +100 RPM", "log_liq": "more liquid produced"}
         which = st.segmented_control("Wells in the model", ["All rod jobs", "Chronic wells (2+ prior repairs)"],
-                                     default="All rod jobs", key="cox_which") or "All rod jobs"
+                                     required=True, default="All rod jobs", key="cox_which") or "All rod jobs"
         t = ui.art("ideas/1/cox_all.csv" if which == "All rod jobs" else "ideas/1/cox_chronic.csv")
         ui.show(forest([(names.get(x.term, x.term), x.HR, x.HR_lo, x.HR_hi) for x in t.itertuples()],
                        f"What speeds up or slows down the next rod repair ({which.lower()})",

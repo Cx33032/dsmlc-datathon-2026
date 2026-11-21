@@ -42,7 +42,7 @@ if jumped:   # a well opened from another page: show the list that contains it
     st.session_state["w_scope"] = ALL if jumped not in prog_set else CHRONIC
 with ui.filters("Find a well", reset_keys=["w_scope", "w_area", "w_rec"]):
     c1, c2, c3 = st.columns([1.3, 1.4, 1.6])
-    scope = c1.segmented_control("Show", [CHRONIC, ALL], default=CHRONIC, key="w_scope",
+    scope = c1.segmented_control("Show", [CHRONIC, ALL], required=True, default=CHRONIC, key="w_scope",
                                  help=ui.TERMS["Chronic rod well"]) or CHRONIC
     areas = c2.multiselect("Area", sorted(recs["area"].unique()), placeholder="All areas", key="w_area")
     rec_f = c3.multiselect("Show only wells where the app recommends", ["New string", "Section", "Corrosion remedy"],
@@ -81,7 +81,7 @@ _, net_hi = well_net(lam, econ, pm3, hr=econ["hr_chronic_hi"])
 ui.summary(top_slot, f"<b>{uwi}</b> ({area}), {lam} rod repairs in the last 12 months. {headline(acts)}"
                      + (f" A new string is worth <b>{ui.money(net)}</b> over {econ['horizon_yr']:.0f} years."
                         if net > 0 and acts[0].status == "recommend" else ""))
-st.subheader("Recommended at the next pull")
+st.header("Recommended at the next pull")
 st.caption(f"As of {econ['asof']}. The same rule writes the recommendation on Today's queue.")
 icon = {"recommend": ":material/check_circle:", "not indicated": ":material/remove:",
         "insufficient data": ":material/help:"}
@@ -190,7 +190,7 @@ with tab_trend:
     # ---------------------------------------------------------------- 90-day trend
     wd_all = ui.art("well_daily.parquet")
     wd = wd_all[wd_all["uwi"].astype(str) == uwi].sort_values("production_date") if wd_all is not None else pd.DataFrame()
-    win = st.segmented_control("Window", ["30 days", "90 days", "180 days", "1 year"], default="90 days", key="trend_win")
+    win = st.segmented_control("Window", ["30 days", "90 days", "180 days", "1 year"], required=True, default="90 days", key="trend_win")
     if len(wd):
         wd = wd[wd["production_date"] > wd["production_date"].max() - pd.Timedelta(days=int({"30 days": 30, "90 days": 90,
                                                                                            "180 days": 180, "1 year": 365}[win or "90 days"]))]

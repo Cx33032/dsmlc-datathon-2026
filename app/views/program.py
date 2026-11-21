@@ -123,7 +123,7 @@ with st.expander(f"How the net value over {hz:.0f} yr is worked out", icon=":mat
         ui.show(ui.style(fig, 320))
 
 # ---------------------------------------------------------------- ranked wells (replaces the table)
-st.subheader("Which wells first")
+st.header("Which wells first")
 n = st.slider("Number of wells to show", 5, max(5, min(60, len(prog))), min(20, len(prog)), key="prog_n")
 g = prog.head(n)
 colors = [ui.BLUE if v > 0 else ui.CRITICAL for v in g["net"]]
@@ -176,7 +176,7 @@ with right:
     ui.explain("Wells are grouped by their most common coded failure cause.")
 
 # ---------------------------------------------------------------- stress test (replaces the sensitivity table)
-st.subheader("Does it survive pessimism?")
+st.header("Does it survive pessimism?")
 NAMES = {"central": "Expected case",
          "HR at upper 95% CI": "Weakest new-string effect (upper 95% CI)",
          "lost oil = median per event": "Lost oil per repair at the median",

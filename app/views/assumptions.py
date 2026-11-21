@@ -50,7 +50,7 @@ HORIZON = {"The new-string effect is observational": "At the pull", "Break depth
            "Dispatch queue is a reconstruction": "Today", "Chronic list is a snapshot": "At the pull"}
 with ui.filters():
     pick = st.segmented_control("Show the assumptions behind", ["All", "Today", "At the pull", "Between failures",
-                                                                "All $ figures"], default="All") or "All"
+                                                                "All $ figures"], required=True, default="All") or "All"
 shown = [r for r in rows if pick == "All" or HORIZON.get(r[0]) == pick]
 ui.summary(top_slot, f"{len(rows)} assumptions could change the numbers. Each card names one and the check that "
                      "would test it.")

@@ -33,7 +33,7 @@ with ui.filters(reset_keys=["q_day", "q_area", "q_cause", "q_k", "q_chronic", "q
                         help="The top ones are drawn in blue and get a reason card below the chart.")
     d1, d2 = st.columns([1, 2.6])
     chronic_only = d1.toggle("Show only chronic rod wells", key="q_chronic", help=ui.TERMS["Chronic rod well"])
-    mode = d2.segmented_control("Show", [DECIDE, REPLAY], default=DECIDE, key="q_mode",
+    mode = d2.segmented_control("Show", [DECIDE, REPLAY], required=True, default=DECIDE, key="q_mode",
                                 help="The first option shows only what was known at the end of the day. Replay also "
                                      "shows what each outage lost over the next 3 days, to check the ranking.")
 replay = mode == REPLAY
@@ -108,7 +108,7 @@ if ev and ev.selection and ev.selection.points:
     if y in lab:
         picked = q.iloc[lab.index(y)]
 cards = [picked] if picked is not None else [r for _, r in top.iterrows()]
-st.subheader(f"Why #{int(picked['rank'])} ranks there" if picked is not None else f"Why the top {len(cards)} rank there")
+st.header(f"Why #{int(picked['rank'])} ranks there" if picked is not None else f"Why the top {len(cards)} rank there")
 if picked is None:
     st.caption("Click any bar in the chart to see the reason for that outage.")
 for r in cards:

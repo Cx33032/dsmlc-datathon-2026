@@ -49,6 +49,8 @@ CSS = f"""<style>
 /* primary buttons: white text needs the darker blue in both themes (5.3:1) */
 [data-testid="stBaseButton-primary"] {{ background: {ACCENT}; border-color: {ACCENT}; color: #fff; }}
 [data-testid="stBaseButton-primary"]:hover {{ background: {ACCENT_HOVER}; border-color: {ACCENT_HOVER}; color: #fff; }}
+/* section headings are h2 (page title is h1); keep them at the section size */
+[data-testid="stMain"] h2 {{ font-size: 1.75rem; }}
 .cn-summary {{ font-size: 1.15rem; line-height: 1.55; margin: -0.5rem 0 0.25rem; max-width: 62rem; }}
 .cn-summary b {{ font-weight: 650; }}
 .cn-label {{ font-size: .8rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }}
@@ -104,7 +106,7 @@ def sidebar():
                            "without the competition data. To use the real data, put the competition files in place "
                            "and run build_artifacts.py.")
     if st.session_state["demo"] and not (DEMO_OUT / "build_info.json").exists():
-        with st.spinner("Building the synthetic demo data. This takes about 30 seconds the first time."):
+        with st.spinner("Building the synthetic demo data (about 30 seconds the first time)…"):
             import subprocess
             r = subprocess.run([sys.executable, str(ROOT / "build_artifacts.py"), "--demo"], cwd=ROOT,
                                capture_output=True, text=True)
