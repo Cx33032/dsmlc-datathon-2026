@@ -209,7 +209,7 @@ if len(worst):
     fig = ui.hbar([f"{u} · {a}" for u, a in zip(worst["uwi"], worst["area"])], worst["worst_case_net"] / 1e3,
                   text=[f"{ui.money(v)} · {r} repairs" for v, r in zip(worst["worst_case_net"], worst["repairs_last365"])],
                   xaxis="net value in the worst case (thousand C$)", hover="%{y}<br>C$%{x:,.0f}k<extra></extra>",
-                  title=f"Start with these {len(worst)} wells: they pay back even in the worst case")
+                  title=f"Start with these {len(worst)} wells: they pay back even in the worst case", colors=ui.AQUA)
     fig.update_xaxes(range=[0, worst["worst_case_net"].max() / 1e3 * 1.5])
     ui.show(fig)
     ui.explain("Worst case = the weakest new-string effect, repair job cost only, double string cost and 1 year of "

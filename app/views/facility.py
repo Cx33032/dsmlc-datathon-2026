@@ -197,7 +197,7 @@ left, right = st.columns([3, 2])
 with left:
     has_lag = f["laggards"] > 0
     fig = go.Figure()
-    for mask, name, color in ((~has_lag, "all wells back on time", ui.GRAY), (has_lag, "some wells lagged", ui.BLUE)):
+    for mask, name, color in ((~has_lag, "all wells back on time", ui.BLUE), (has_lag, "some wells lagged", ui.ORANGE)):
         gg = f[mask]
         fig.add_trace(go.Scatter(
             x=gg["start"], y=gg["facility_name"], mode="markers", name=name, customdata=gg["incident"],
@@ -205,7 +205,7 @@ with left:
                         line=dict(color="white", width=1)),
             text=[f"{w} wells down · {lg} lagged · {c}" for w, lg, c in zip(gg["wells"], gg["laggards"], gg["main_cause"])],
             hovertemplate="%{y}<br>%{x|%d %b %Y}<br>%{text}<extra></extra>"))
-    fig.update_layout(title=f"{int(has_lag.sum())} of {len(f)} incidents left wells lagging (blue)",
+    fig.update_layout(title=f"{int(has_lag.sum())} of {len(f)} incidents left wells lagging (orange)",
                       yaxis=dict(automargin=True, title="facility"), xaxis_title="date the facility went down")
     ui.show(ui.style(fig, max(320, 30 * f["facility_name"].nunique() + 120)), on_select=_from_timeline,
             selection_mode="points", key="fac_timeline")

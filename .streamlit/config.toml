@@ -1,7 +1,0 @@
-# App theme. Blue marks the item to act on everywhere in the app; red is kept for loss and alarm.
-# Colours match the tokens in app/ui.py and pass WCAG AA (4.5:1) for text in each mode.
-[theme.light]
-primaryColor = "#1f6bc4"
-
-[theme.dark]
-primaryColor = "#5aa0ee"

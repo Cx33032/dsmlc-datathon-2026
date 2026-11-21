@@ -31,11 +31,10 @@ BLUE, ORANGE, AQUA, YELLOW = "#2a78d6", "#eb6834", "#1baf7a", "#eda100"
 GRAY, MUTED, CRITICAL = "#a9a8a1", "#898781", "#d03b3b"
 SEQ_BLUE = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"]
 CAUSE_COLORS = {"Corrosion": CRITICAL, "Fatigue": BLUE, "Load / Excess Stress": ORANGE, "Erosion": YELLOW}
-COLOR_RULE = "Blue = act on this or this app's method. Grey = the rest or the baseline. Red = loss, alarm or a negative value."
+COLOR_RULE = "Red = loss, alarm or a negative value. Other colours are explained in each chart's legend or note."
 
-ACCENT, ACCENT_HOVER = "#1f6bc4", "#1a5ca9"   # light-theme primary in .streamlit/config.toml; white text 5.3:1
 FONT = "system-ui, -apple-system, Segoe UI, sans-serif"
-GRID, AXIS = "rgba(137,140,150,0.22)", "rgba(137,140,150,0.6)"
+GRID, AXIS = "rgba(137,135,129,0.25)", "#c3c2b7"
 # Secondary text is the theme's own text colour at 80% opacity: 6.3:1 on white, 13:1 on the dark theme (WCAG AA).
 # Chart text uses the theme text colour too, so it passes in light and dark mode without knowing the mode.
 CSS = f"""<style>
@@ -45,10 +44,6 @@ CSS = f"""<style>
 [data-testid="stPlotlyChart"] {{ color: inherit; }}
 [data-testid="stPlotlyChart"] :is(.cartesianlayer, .legend, .infolayer, .annotation, .barlayer, .scatterlayer) text
   {{ fill: currentColor !important; }}
-:focus-visible {{ outline: 2px solid {BLUE} !important; outline-offset: 2px !important; }}
-/* primary buttons: white text needs the darker blue in both themes (5.3:1) */
-[data-testid="stBaseButton-primary"] {{ background: {ACCENT}; border-color: {ACCENT}; color: #fff; }}
-[data-testid="stBaseButton-primary"]:hover {{ background: {ACCENT_HOVER}; border-color: {ACCENT_HOVER}; color: #fff; }}
 /* section headings are h2 (page title is h1); keep them at the section size */
 [data-testid="stMain"] h2 {{ font-size: 1.75rem; }}
 .cn-summary {{ font-size: 1.15rem; line-height: 1.55; margin: -0.5rem 0 0.25rem; max-width: 62rem; }}

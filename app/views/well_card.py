@@ -134,7 +134,7 @@ with tab_hist:
         rep = w_rod[w_rod["is_replace"] == 0]
         new = w_rod[w_rod["is_replace"] == 1]
         fig.add_trace(go.Scatter(x=rep["s"], y=["Rod jobs"] * len(rep), mode="markers", name="repair",
-                                 marker=dict(symbol="circle", size=10, color=ui.GRAY,
+                                 marker=dict(symbol="circle", size=10, color=ui.ORANGE,
                                              line=dict(color="white", width=1.5)),
                                  hovertemplate="%{x|%d %b %Y}: rod repair<extra></extra>"))
         fig.add_trace(go.Scatter(x=new["s"], y=["Rod jobs"] * len(new), mode="markers", name="new string",
@@ -149,7 +149,7 @@ with tab_hist:
                           xaxis_title="date", yaxis=dict(categoryorder="array",
                           categoryarray=["Failures (coded cause)", "Rod jobs"]))
         ui.show(ui.style(fig, 260))
-        ui.explain("Top row: grey = rod repair, green diamond = new string. Bottom row: logged failures, coloured "
+        ui.explain("Top row: orange = rod repair, green diamond = new string. Bottom row: logged failures, coloured "
                    "by cause. The failure log starts in mid-2025.")
     with right:
         loc = w_br[w_br["depth_m"].notna()]
