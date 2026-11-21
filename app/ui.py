@@ -33,6 +33,7 @@ SEQ_BLUE = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#
 CAUSE_COLORS = {"Corrosion": CRITICAL, "Fatigue": BLUE, "Load / Excess Stress": ORANGE, "Erosion": YELLOW}
 COLOR_RULE = "Blue = act on this or this app's method. Grey = the rest or the baseline. Red = loss, alarm or a negative value."
 
+ACCENT, ACCENT_HOVER = "#1f6bc4", "#1a5ca9"   # light-theme primary in .streamlit/config.toml; white text 5.3:1
 FONT = "system-ui, -apple-system, Segoe UI, sans-serif"
 GRID, AXIS = "rgba(137,140,150,0.22)", "rgba(137,140,150,0.6)"
 # Secondary text is the theme's own text colour at 80% opacity: 6.3:1 on white, 13:1 on the dark theme (WCAG AA).
@@ -45,6 +46,9 @@ CSS = f"""<style>
 [data-testid="stPlotlyChart"] :is(.cartesianlayer, .legend, .infolayer, .annotation, .barlayer, .scatterlayer) text
   {{ fill: currentColor !important; }}
 :focus-visible {{ outline: 2px solid {BLUE} !important; outline-offset: 2px !important; }}
+/* primary buttons: white text needs the darker blue in both themes (5.3:1) */
+[data-testid="stBaseButton-primary"] {{ background: {ACCENT}; border-color: {ACCENT}; color: #fff; }}
+[data-testid="stBaseButton-primary"]:hover {{ background: {ACCENT_HOVER}; border-color: {ACCENT_HOVER}; color: #fff; }}
 .cn-summary {{ font-size: 1.15rem; line-height: 1.55; margin: -0.5rem 0 0.25rem; max-width: 62rem; }}
 .cn-summary b {{ font-weight: 650; }}
 .cn-label {{ font-size: .8rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }}

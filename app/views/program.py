@@ -84,12 +84,12 @@ with top_slot:
 m1, m2, m3, m4, m5 = st.columns(5)
 m1.metric("Wells", len(prog), f"{int(prog['repairs_last365'].sum())} rod repairs last year", delta_arrow="off",
           delta_color="off")
-m2.metric(f"Extra cost of new strings", ui.money(cost), help=f"C${econ['inc_cost']:,.0f} more than a repair, per well"
+m2.metric("Extra cost", ui.money(cost), help=f"Extra cost of the new strings: C${econ['inc_cost']:,.0f} more than a repair, per well"
                                                              + (", doubled" if cm_ > 1 else "") + ".")
-m3.metric(f"Saved over {hz:.0f} yr", ui.money(saved),
+m3.metric(f"Saved, {hz:.0f} yr", ui.money(saved),
           help="Repairs avoided × cost of one rod failure (repair job" + (" + lost oil)." if lost_on else ")."))
-m4.metric(f"Net value over {hz:.0f} yr", ui.money(prog["net"].sum()), help=ui.TERMS["Net value"])
-m5.metric("Pays back above (repairs/yr)", f"{be:.1f}", help=ui.TERMS["Pays back above"])
+m4.metric(f"Net value, {hz:.0f} yr", ui.money(prog["net"].sum()), help=ui.TERMS["Net value"])
+m5.metric("Pays back above", f"{be:.1f}/yr", help=ui.TERMS["Pays back above"] + " Unit: rod repairs per year.")
 
 # ---------------------------------------------------------------- ranked wells (replaces the table)
 st.subheader("Which wells first")
@@ -157,11 +157,11 @@ NAMES = {"central": "Expected case",
 sens = sensitivity(prog["repairs_last365"], econ, pm3)
 vals = sens["program_net_CAD"] / 1e6
 labels = [NAMES.get(s, s) for s in sens["scenario"]]
-txt = [f"{ui.money(v)} · pays back above {b:.1f}/yr · {w} wells positive"
-       for v, b, w in zip(sens["program_net_CAD"], sens["breakeven_failures_per_yr"], sens["wells_positive"])]
+txt = [f"{ui.money(v)} · {w} wells pay back" for v, w in zip(sens["program_net_CAD"], sens["wells_positive"])]
 fig = ui.hbar(labels, vals, colors=[ui.BLUE if v > 0 else ui.CRITICAL for v in vals],
               text=[t if v > 0 else "" for t, v in zip(txt, vals)],
-              xaxis="program net value (million C$)", hover="%{y}: C$%{x:.2f}M<extra></extra>",
+              xaxis="program net value (million C$)", customdata=sens["breakeven_failures_per_yr"],
+              hover="%{y}: C$%{x:.2f}M, pays back above %{customdata:.1f} repairs/yr<extra></extra>",
               title=f"The program stays positive in {int((vals[1:] > 0).sum())} of {len(vals) - 1} pessimistic cases")
 neg = vals <= 0
 if neg.any():   # labels of negative bars go right of zero, so they never collide with the axis labels

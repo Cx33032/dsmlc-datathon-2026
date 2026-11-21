@@ -97,10 +97,10 @@ for c, a in zip(cols, acts):
 # ---------------------------------------------------------------- economics
 e1, e2, e3, e4 = st.columns(4)
 e1.metric("Rod repairs, last 12 months", lam)
-e2.metric(f"Repairs a new string avoids ({econ['horizon_yr']:.0f} yr)", f"{avoided:.1f}",
+e2.metric(f"Repairs avoided, {econ['horizon_yr']:.0f} yr", f"{avoided:.1f}",
           help=f"Repairs per year × (1 - hazard ratio {econ['hr_chronic']:.2f}) × {econ['horizon_yr']:.0f} years. "
                + ui.TERMS["HR"])
-e3.metric(f"Net value of a new string ({econ['horizon_yr']:.0f} yr)", ui.money(net),
+e3.metric(f"New string net value, {econ['horizon_yr']:.0f} yr", ui.money(net),
           f"{ui.money(net_hi)} if the effect is at its weakest", help=ui.TERMS["Net value"],
           delta_arrow="off", delta_color="off")
 e4.metric("Cost of one more rod failure", ui.money(fail_cost(econ, pm3)),
