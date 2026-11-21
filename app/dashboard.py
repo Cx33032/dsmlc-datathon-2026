@@ -27,12 +27,15 @@ BLUE, ORANGE, AQUA, YELLOW = "#2a78d6", "#eb6834", "#1baf7a", "#eda100"
 GRAY, MUTED = "#a9a8a1", "#898781"
 CRITICAL = "#d03b3b"
 SEQ_BLUE = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"]
-GROUP_COLORS = {"Equipment failure (rods/pump/tubing)": BLUE, "Facility & capacity": ORANGE,
+GROUP_COLORS = {"Equipment failure": BLUE, "Facility & capacity": ORANGE,
                 "Other avoidable": AQUA, "Uncoded": YELLOW}
 
 
 def style(fig: go.Figure, h: int = 360) -> go.Figure:
-    fig.update_layout(height=h, margin=dict(l=8, r=8, t=64, b=8), hovermode="closest",
+    # small top margin: the title is drawn by show() above the chart, and plotly grows the
+    # margin itself when the legend wraps onto several rows
+    top = 36 if fig.layout.annotations else 8  # room for subplot titles
+    fig.update_layout(height=h, margin=dict(l=8, r=8, t=top, b=8), hovermode="closest",
                       legend=dict(orientation="h", yanchor="bottom", y=1.01, x=0, xanchor="left", title=None,
                                   bgcolor="rgba(0,0,0,0)"),
                       font=dict(family="system-ui, -apple-system, Segoe UI, sans-serif"))
@@ -42,6 +45,12 @@ def style(fig: go.Figure, h: int = 360) -> go.Figure:
 
 
 def show(fig, **kw):
+    """Render the chart title as page text (it wraps on narrow screens instead of colliding
+    with the legend), then the chart itself."""
+    title = fig.layout.title.text
+    if title:
+        st.markdown(f"**{title}**")
+        fig.update_layout(title=None)
     st.plotly_chart(fig, use_container_width=True, theme="streamlit", **kw)
 
 
@@ -68,7 +77,7 @@ def well_daily(uwi: str, stamp: float) -> pd.DataFrame:
 
 def group_of(cat: str) -> str:
     if cat in FAILURE_CATEGORIES:
-        return "Equipment failure (rods/pump/tubing)"
+        return "Equipment failure"
     if cat.startswith("Facility"):
         return "Facility & capacity"
     if cat == "Uncoded":
@@ -126,15 +135,21 @@ with tabs[0]:
     ev = area_filter(D["events"].merge(D["wells"][["uwi", "field_operating_area"]], on="uwi", how="left"))
     ev12 = ev[ev["onset_date"] >= yr_ago]
 
+    # short labels and compact values so the four tiles fit side by side without truncation
+    lost12 = last12["est_lost_oil_m3"].sum()
+    st.caption(f"Last 12 months (to {MAX_DATE:%b %Y})")
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Oil rate, last 12 months", f"{recent:,.0f} bbl/d", f"{100 * (recent / prior - 1):+.1f}% vs prior 12 mo")
-    c2.metric("Avoidable lost oil, last 12 months", f"{last12['est_lost_oil_m3'].sum() * M3_TO_BBL:,.0f} bbl",
-              f"≈ ${last12['est_lost_oil_m3'].sum() * cad_per_m3 / 1e6:,.1f}M at assumed netback",
-              delta_color="off", delta_arrow="off")
-    c3.metric("…of which equipment failures", f"{fail12 * M3_TO_BBL:,.0f} bbl",
-              f"{100 * fail12 / max(last12['est_lost_oil_m3'].sum(), 1):.0f}% of avoidable loss", delta_color="off", delta_arrow="off")
-    c4.metric("Failure events, last 12 months", f"{len(ev12):,}",
-              f"${ev12['job_cost'].sum() / 1e6:,.1f}M repair cost (field est.)", delta_color="off", delta_arrow="off")
+    c1.metric("Oil rate, bbl/d", f"{recent:,.0f}", f"{100 * (recent / prior - 1):+.1f}% vs prior yr",
+              help="Mean daily oil rate over the last 12 months, compared with the 12 months before.")
+    c2.metric("Avoidable loss, bbl", f"{lost12 * M3_TO_BBL / 1e3:,.0f}k", f"≈ ${lost12 * cad_per_m3 / 1e6:,.1f}M",
+              delta_color="off", delta_arrow="off",
+              help=f"Estimated avoidable lost oil: {lost12 * M3_TO_BBL:,.0f} bbl, valued at the netback in the sidebar.")
+    c3.metric("From failures, bbl", f"{fail12 * M3_TO_BBL / 1e3:,.0f}k",
+              f"{100 * fail12 / max(lost12, 1):.0f}% of avoidable", delta_color="off", delta_arrow="off",
+              help=f"Lost oil from rod, pump and tubing failures: {fail12 * M3_TO_BBL:,.0f} bbl.")
+    c4.metric("Failure events", f"{len(ev12):,}", f"${ev12['job_cost'].sum() / 1e6:,.1f}M repairs",
+              delta_color="off", delta_arrow="off",
+              help="Rod/pump/tubing repair events and their field-estimated job cost.")
 
     left, right = st.columns(2)
     with left:
@@ -149,9 +164,10 @@ with tabs[0]:
                      category_orders={"group": list(GROUP_COLORS)},
                      labels={"bbl_d": "bbl/d", "month": "", "group": ""})
         fig.update_traces(marker_line_width=0, hovertemplate="%{x|%b %Y}<br>%{y:,.0f} bbl/d<extra>%{fullData.name}</extra>")
-        fig.update_layout(title="Avoidable lost oil by cause group (bbl/d, monthly)", bargap=0.15)
+        fig.update_layout(title="Avoidable lost oil by cause (bbl/d, monthly)", bargap=0.15)
         show(style(fig))
-    st.caption("Lost oil = the well's trailing 30-day median oil rate × hours down / 24, per downtime day. "
+    st.caption("Equipment failure = rod, pump and tubing/packer failures. "
+               "Lost oil = the well's trailing 30-day median oil rate × hours down / 24, per downtime day. "
                f"Validated against operator-reported lost oil: totals within "
                f"{abs(1 - D['loss_validation']['sum_est_over_sum_reported']) * 100:.0f}%, rank correlation "
                f"{D['loss_validation']['spearman_r']:.2f}. Economic long-term shut-ins are excluded as a business "
