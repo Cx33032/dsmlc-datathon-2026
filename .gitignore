@@ -1,6 +1,7 @@
 # Competition data - may not be redistributed (Strathcona Resources terms)
 *.parquet
 *.pdf
+*.api_token
 outputs/
 
 # Environment / tooling
