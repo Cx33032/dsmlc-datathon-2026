@@ -7,13 +7,29 @@ import streamlit as st
 
 import ui
 
-st.title("Evidence")
-ui.intro("Why should anyone trust the queue, the new-string advice and the depth bands, and what did we test and drop?",
-         ["Read the <b>four cards</b> first: one line per claim and whether the data backs it.",
-          "Open a <b>tab</b> for the proof behind one claim. Each tab starts with the question, the answer and how we "
-          "tested it.",
-          "Under every chart, the <b>grey note</b> says how to read it. Unfamiliar words are explained in "
-          "<b>Terms used on this page</b>."])
+top_slot = ui.header(
+    "Can you trust these numbers?",
+    how=["Read where the numbers come from, just below.",
+         "Read the cards next: one line per claim and whether the data backs it.",
+         "Open a tab for the proof behind one claim. Each tab starts with the question, the answer and how we "
+         "tested it.",
+         "Under every chart, a note says how to read it.",
+         "For what the numbers cannot show, open Assumptions & limits."],
+    extra_terms={
+        "Hazard ratio (HR)": "How much faster something happens in one group than another. 1 = same speed, 0.5 = half "
+                             "as often, 2 = twice as often.",
+        "Odds ratio (OR)": "The same idea for 'was it higher before a failure?' comparisons. 1 = no difference.",
+        "95% range (confidence interval, CI)": "The range the true value very likely sits in. If the range crosses 1, "
+                                               "we cannot tell the effect apart from no effect.",
+        "Cox model": "A standard way to compare how long things last (here: time to the next rod repair) while "
+                     "accounting for other differences between wells, such as how often they failed before.",
+        "Permutation test": "Shuffle the data many times so any real pattern is destroyed, and see how often chance "
+                            "alone matches what we observed. Rarely = the pattern is real.",
+        "p-value": "The chance of seeing a result this strong if there were no real effect. Below 0.05 is the usual "
+                   "bar.",
+        "Replay (backtest)": "Fit on the past, then run day by day on a later period the method never saw.",
+        "K": "The number of outages reviewed per day.",
+        "RPM": ui.TERMS["RPM"]})
 
 econ = ui.art("ideas/1/economics.json") or {}
 m5 = ui.art("ideas/5/metrics.json") or {}
@@ -70,26 +86,33 @@ if v:
     cards.append(("Whiplash (rejected)", bool(v.get("keep")),
                   "Day-to-day swings in pump speed and torque do not predict rod failures in this data, so we "
                   "left the idea out of the app." if not v.get("keep") else "Kept as a watch signal."))
+n_ok = sum(ok for _, ok, _ in cards)
+if cards:
+    ui.summary(top_slot, f"<b>{n_ok} of {len(cards)}</b> claims hold up in the data. "
+               + ("The whiplash idea did not, so the app leaves it out. " if v and not v.get("keep") else "")
+               + "Each tab below shows the test behind one claim.")
+
+with st.container(border=True):
+    st.markdown("**Where the numbers come from**")
+    if ui.is_demo():
+        st.markdown("Demo mode: synthetic wells, outages, rod jobs and crew-style notes with the same columns as the "
+                    "real files. The numbers are examples only.")
+    else:
+        st.markdown("Three operator files, Jan 2021 to Oct 2026, for 2,905 heavy-oil wells in Western Canada:\n"
+                    "- **Daily production:** one row per well per day, with downtime hours, reasons and pump readings.\n"
+                    "- **Well jobs:** one row per job (15,610), with job type and cost.\n"
+                    "- **Production failures:** one row per logged failure (2,873), with cause and crew comments.")
+    st.caption("The app reads only tables built by build_artifacts.py --demo." if ui.is_demo() else
+               "Source: docs/Dataset_Handbook.md. The app reads only tables built from these files by "
+               "build_artifacts.py.")
+    st.page_link(ui.PAGES["limits"], label="See what the numbers cannot show: Assumptions & limits",
+                 icon=":material/arrow_forward:")
+
 cols = st.columns(len(cards) or 1)
 for c, (name, ok, text) in zip(cols, cards):
     with c.container(border=True):
         st.markdown(f"{':material/check_circle:' if ok else ':material/cancel:'} **{name}**")
         st.caption(text)
-
-with st.expander("Terms used on this page", icon=":material/menu_book:"):
-    st.markdown(
-        "- **Hazard ratio (HR):** how much faster something happens in one group than another. 1 = same speed, "
-        "0.5 = half as often, 2 = twice as often.\n"
-        "- **Odds ratio (OR):** the same idea for 'was it higher before a failure?' comparisons. 1 = no difference.\n"
-        "- **95% range (confidence interval):** the range the true value very likely sits in. If the range crosses "
-        "1, we cannot tell the effect apart from no effect.\n"
-        "- **Cox model:** a standard way to compare how long things last (here: time to the next rod repair) while "
-        "accounting for other differences between wells, such as how often they failed before.\n"
-        "- **Permutation test:** shuffle the data many times so any real pattern is destroyed, and see how often "
-        "chance alone matches what we observed. Rarely = the pattern is real.\n"
-        "- **p-value:** the chance of seeing a result this strong if there were no real effect. Below 0.05 is the usual "
-        "bar.\n"
-        "- **Replay (backtest):** fit on the past, then run day by day on a later period the method never saw.")
 
 tab_q, tab_rod, tab_depth, tab_shock, tab_traps = st.tabs(
     ["Today's queue", "New rod string", "Break depth", "Whiplash (rejected)", "Traps we avoided"])
@@ -107,7 +130,7 @@ with tab_q:
                "and asked: what share of all the oil those outages went on to lose did they account for?")
         c1, c2 = st.columns([1.4, 2])
         outcome = c1.segmented_control(
-            "Measure of lost oil", ["reconstructed exposure", "recorded loss"], default="reconstructed exposure",
+            "Measure of lost oil", ["reconstructed exposure", "recorded loss"], required=True, default="reconstructed exposure",
             key="ev_outcome", help="Reconstructed exposure = extra hours down × the well's normal rate (our estimate). "
                                    "Recorded loss = the lost-oil number the operator entered.") or "reconstructed exposure"
         kk = c2.select_slider("Outages reviewed per day (K)", options=sorted(rep["K"].unique()), value=2, key="ev_k")
@@ -128,9 +151,10 @@ with tab_q:
                                      line=dict(color=color, width=2.5, dash="dot" if col == "oracle" else None),
                                      marker=dict(size=8), hovertemplate=lab + ": %{y:.1f}% at %{x} a day<extra></extra>"))
         fig.add_vline(x=kk, line=dict(color=ui.MUTED, width=1))
-        fig.update_layout(title="Share of the oil at stake that the reviewed outages account for",
-                          xaxis=dict(title="outages reviewed per day", tickvals=sorted(rep["K"].unique())),
-                          yaxis=dict(range=[0, 100], title="% caught"))
+        fig.update_layout(title=f"At {kk} a day the queue catches {100 * sel['dispatch']:.0f}% of the oil at stake, "
+                                f"against {100 * sel['first_day_loss']:.0f}% for first-day ranking",
+                          xaxis=dict(title="outages reviewed per day (K)", tickvals=sorted(rep["K"].unique())),
+                          yaxis=dict(range=[0, 100], title="share of the oil at stake caught (%)"))
         ui.show(ui.style(fig, 320))
         ui.explain("Higher is better. Blue above grey = the queue picks costlier outages than ranking by first-day "
                    "loss. The dotted line is the ceiling. Switch the measure: the lead is larger on our exposure "
@@ -158,7 +182,7 @@ with tab_rod:
         names = {"is_replace": "new string instead of a repair", "log_prior": "more repairs in the prior year",
                  "rpm100": "pump speed +100 RPM", "log_liq": "more liquid produced"}
         which = st.segmented_control("Wells in the model", ["All rod jobs", "Chronic wells (2+ prior repairs)"],
-                                     default="All rod jobs", key="cox_which") or "All rod jobs"
+                                     required=True, default="All rod jobs", key="cox_which") or "All rod jobs"
         t = ui.art("ideas/1/cox_all.csv" if which == "All rod jobs" else "ideas/1/cox_chronic.csv")
         ui.show(forest([(names.get(x.term, x.term), x.HR, x.HR_lo, x.HR_hi) for x in t.itertuples()],
                        f"What speeds up or slows down the next rod repair ({which.lower()})",
@@ -342,7 +366,7 @@ with tab_traps:
     traps = [
         ("The failure log only starts mid-2025", "Rod events come from the job records (2021–26), which go back "
                                                  "further; tests that need the failure log start in Jun 2025."),
-        ("Old 'Rod Repair' jobs show $0 cost", "Repair cost = average of jobs with a cost above zero, 2023 onward."),
+        ("Old 'Rod Repair' jobs show C$0 cost", "Repair cost = average of jobs with a cost above zero, 2023 onward."),
         ("One pull can appear as several job rows", "Jobs within 3 days on the same well are merged into one event; "
                                                     "if any row is a new string, the event counts as one."),
         ("2021 jobs have no prior history to count", "Prior-repair counts are used only for jobs from 2022 on."),

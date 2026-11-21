@@ -3,22 +3,27 @@ import streamlit as st
 
 import ui
 
-st.title("Assumptions & limits")
-ui.intro("What could make these numbers wrong, and how would we check?",
-         ["Pick the <b>decision</b> you care about, or leave it on All.",
-          "Each card says what we assumed or could not see.",
-          "The grey line under it says how we would test it, usually in a pilot."])
+top_slot = ui.header(
+    "What could make these numbers wrong?",
+    how=["Pick the decision you care about, or leave it on All.",
+         "Each card says what we assumed or could not see.",
+         "The line under it says how we would test it."],
+    terms=["HR", "C$"],
+    extra_terms={"WCS Hardisty": "The heavy-oil price the app starts from (see the sidebar slider).",
+                 "Dispatch": "The team's earlier name for Today's queue.",
+                 "D+1": "The morning after day D."})
 econ = ui.art("ideas/1/economics.json") or {}
 m5 = ui.art("ideas/5/metrics.json") or {}
 v = ui.art("ideas/whiplash/verdict.json") or {}
 
 rows = [
     ("The new-string effect is observational",
-     f"HR {econ.get('hr_chronic', 0.495):.3f} comes from wells that operators chose to re-string. We adjust for prior "
+     f"The hazard ratio (HR {econ.get('hr_chronic', 0.495):.3f}) comes from wells that operators chose to re-string. "
+     "We adjust for prior "
      "failures, RPM, liquid rate, area and year, but unmeasured reasons for the choice could remain.",
      "Pilot: randomise 70 of the 145 program wells to a new string at the next pull, compare repair rates after 12 months."),
     ("Break depth covers 45% of rod failures",
-     f"{m5.get('located_total', 983):,} of {m5.get('rod_failures', 2186):,} rod failures have a parsable depth. "
+     f"{m5.get('located_total', 983):,} of {m5.get('rod_failures', 2186):,} rod failures have a depth the parser can read. "
      "Only a 15-row spot check of the parser so far.",
      "Hand-label 100 random rows; report parser precision and recall before acting on a depth band."),
     ("Section replacement saves 40%", "The saving of a section job vs a full string is an assumption, not in the data.",
@@ -37,17 +42,19 @@ rows = [
      "The original Dispatch notebook is not in this repo; the queue was rebuilt from its written spec and lands within "
      "about 1-2 points of the reported capture.", "Swap in the original code when available; the page reads one table."),
     ("Chronic list is a snapshot", f"As of {econ.get('asof', '2026-10-27')}. Wells move on and off as repairs age out.",
-     "Rebuild artifacts weekly (`build_artifacts.py`)."),
+     "Rebuild the app data weekly with build_artifacts.py."),
 ]
 HORIZON = {"The new-string effect is observational": "At the pull", "Break depth covers 45% of rod failures": "At the pull",
            "Section replacement saves 40%": "At the pull", "15% field-gate haircut on WCS": "All $ figures",
            "Revenue, not margin": "All $ figures", "Posting lag": "Today", "Daily data cannot see short shocks": "Between failures",
            "Dispatch queue is a reconstruction": "Today", "Chronic list is a snapshot": "At the pull"}
 with ui.filters():
-    pick = st.segmented_control("Decision", ["All", "Today", "At the pull", "Between failures", "All $ figures"],
-                                default="All") or "All"
+    pick = st.segmented_control("Show the assumptions behind", ["All", "Today", "At the pull", "Between failures",
+                                                                "All $ figures"], required=True, default="All") or "All"
 shown = [r for r in rows if pick == "All" or HORIZON.get(r[0]) == pick]
-st.caption(f"{len(shown)} of {len(rows)} assumptions")
+ui.summary(top_slot, f"{len(rows)} assumptions could change the numbers. Each card names one and the check that "
+                     "would test it.")
+st.caption(f"Showing {len(shown)} of {len(rows)} assumptions")
 cols = st.columns(2)
 for i, (title, what, check) in enumerate(shown):
     with cols[i % 2].container(border=True):

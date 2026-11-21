@@ -24,36 +24,11 @@ import ui  # noqa: E402
 
 OUT = ui.out_dir()
 
-# Validated reference palette (dataviz skill, light steps). Slots in fixed order.
-BLUE, ORANGE, AQUA, YELLOW = "#2a78d6", "#eb6834", "#1baf7a", "#eda100"
-GRAY, MUTED = "#a9a8a1", "#898781"
-CRITICAL = "#d03b3b"
-SEQ_BLUE = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"]
+# One design system: colours and chart style come from ui (app/ui.py).
+from ui import AQUA, BLUE, CRITICAL, GRAY, MUTED, ORANGE, SEQ_BLUE, YELLOW, show, style  # noqa: E402
+
 GROUP_COLORS = {"Equipment failure": BLUE, "Facility & capacity": ORANGE,
                 "Other avoidable": AQUA, "Uncoded": YELLOW}
-
-
-def style(fig: go.Figure, h: int = 360) -> go.Figure:
-    # small top margin: the title is drawn by show() above the chart, and plotly grows the
-    # margin itself when the legend wraps onto several rows
-    top = 36 if fig.layout.annotations else 8  # room for subplot titles
-    fig.update_layout(height=h, margin=dict(l=8, r=8, t=top, b=8), hovermode="closest",
-                      legend=dict(orientation="h", yanchor="bottom", y=1.01, x=0, xanchor="left", title=None,
-                                  bgcolor="rgba(0,0,0,0)"),
-                      font=dict(family="system-ui, -apple-system, Segoe UI, sans-serif"))
-    fig.update_xaxes(showgrid=False, linecolor="#c3c2b7")
-    fig.update_yaxes(gridcolor="rgba(137,135,129,0.25)", zeroline=False)
-    return fig
-
-
-def show(fig, **kw):
-    """Render the chart title as page text (it wraps on narrow screens instead of colliding
-    with the legend), then the chart itself."""
-    title = fig.layout.title.text
-    if title:
-        st.markdown(f"**{title}**")
-        fig.update_layout(title=None)
-    st.plotly_chart(fig, use_container_width=True, theme="streamlit", **kw)
 
 
 # ---------------------------------------------------------------- data
@@ -88,7 +63,7 @@ def group_of(cat: str) -> str:
 
 
 if not (OUT / "risk_scores.parquet").exists():
-    st.error("No pipeline outputs found. Run `python run_pipeline.py` first.")
+    st.warning("This page has no data yet. To build it, run `python run_pipeline.py`.")
     st.stop()
 STAMP = (OUT / "model_info.json").stat().st_mtime + hash(str(OUT)) % 1000
 D = load(STAMP)
@@ -97,18 +72,25 @@ lm["group"] = lm["loss_category"].map(group_of)
 avoid = lm[lm["loss_category"] != "Shut-in (Uneconomic/LTSI)"]
 
 # ---------------------------------------------------------------- page header + filters
-st.title("Field monitor")
-ui.intro("Where is oil being lost, and which running wells are most likely to fail in the next two weeks?",
-         ["Pick <b>areas</b> and <b>years</b> in the filter bar; every tab follows them.",
-          "Move through the <b>tabs</b> from left to right: overview, causes of loss, the 14-day watchlist, one "
-          "well's history, how good the model is, data quality.",
-          "Hover any bar or line for exact numbers; the grey note under each chart says how to read it."])
+top_slot = ui.header(
+    "Where is oil lost, and which wells may fail next?",
+    how=["Read the sentence under the title for the last 12 months.",
+         "Open the Risk watchlist tab for the running wells most likely to fail in the next 14 days.",
+         "Use the other tabs for the causes of lost oil, one well's history, how good the model is, and data quality.",
+         "Pick areas and years in the filter bar. Every tab follows them."],
+    terms=["Avoidable loss", "Watchlist", "bbl", "m³", "C$", "UWI", "Pump efficiency"],
+    extra_terms={"WATCH and ALARM": "Risk levels on the watchlist. WATCH = the top 5% of 2024 validation scores, "
+                                    "ALARM = the top 2%.",
+                 "K": "The number of wells on the daily watchlist.",
+                 "Precision": "The share of listed wells that really had a failure outage within 14 days.",
+                 "Recall": "The share of all failure outages that the list flagged in advance."})
 areas = sorted(lm["field_operating_area"].dropna().unique())
 years = sorted(avoid["month"].dt.year.unique())
-with ui.filters():
+with ui.filters(reset_keys=["m_areas", "m_years"]):
     fc1, fc2 = st.columns([1.3, 2])
-    sel_areas = fc1.multiselect("Areas", areas, placeholder="All areas")
-    y0, y1 = fc2.select_slider("Years (for the loss and failure charts)", options=years, value=(years[0], years[-1]))
+    sel_areas = fc1.multiselect("Areas", areas, placeholder="All areas", key="m_areas")
+    y0, y1 = fc2.select_slider("Years (for the loss and failure charts)", options=years, value=(years[0], years[-1]),
+                               key="m_years")
 netback = ui.price_bbl()
 cad_per_m3 = netback * M3_TO_BBL
 
@@ -149,13 +131,17 @@ with tabs[0]:
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Oil rate, bbl/d", f"{recent:,.0f}", f"{100 * (recent / prior - 1):+.1f}% vs prior yr",
               help="Mean daily oil rate over the last 12 months, compared with the 12 months before.")
-    c2.metric("Avoidable loss, bbl", f"{lost12 * M3_TO_BBL / 1e3:,.0f}k", f"≈ ${lost12 * cad_per_m3 / 1e6:,.1f}M",
+    ui.summary(top_slot, f"In the 12 months to {MAX_DATE:%b %Y}, avoidable downtime cost <b>{lost12 * M3_TO_BBL / 1e3:,.0f}k "
+                         f"bbl</b> of oil (≈ C${lost12 * cad_per_m3 / 1e6:,.1f}M). <b>{100 * fail12 / max(lost12, 1):.0f}%</b> "
+                         "of it came from rod, pump and tubing failures. The Risk watchlist tab lists the running wells "
+                         "most likely to fail in the next 14 days.")
+    c2.metric("Avoidable loss, bbl", f"{lost12 * M3_TO_BBL / 1e3:,.0f}k", f"≈ C${lost12 * cad_per_m3 / 1e6:,.1f}M",
               delta_color="off", delta_arrow="off",
               help=f"Estimated avoidable lost oil: {lost12 * M3_TO_BBL:,.0f} bbl, valued at the netback in the sidebar.")
     c3.metric("From failures, bbl", f"{fail12 * M3_TO_BBL / 1e3:,.0f}k",
               f"{100 * fail12 / max(lost12, 1):.0f}% of avoidable", delta_color="off", delta_arrow="off",
               help=f"Lost oil from rod, pump and tubing failures: {fail12 * M3_TO_BBL:,.0f} bbl.")
-    c4.metric("Failure events", f"{len(ev12):,}", f"${ev12['job_cost'].sum() / 1e6:,.1f}M repairs",
+    c4.metric("Failure events", f"{len(ev12):,}", f"C${ev12['job_cost'].sum() / 1e6:,.1f}M repairs",
               delta_color="off", delta_arrow="off",
               help="Rod/pump/tubing repair events and their field-estimated job cost.")
 
@@ -163,17 +149,22 @@ with tabs[0]:
     with left:
         fig = go.Figure(go.Scatter(x=prod["month"], y=prod["bbl_d"], mode="lines", line=dict(color=BLUE, width=2),
                                    hovertemplate="%{x|%b %Y}<br>%{y:,.0f} bbl/d<extra></extra>"))
-        fig.update_layout(title="Oil production rate (bbl/d, monthly)")
-        show(style(fig))
+        chg = 100 * (recent / prior - 1)
+        fig.update_layout(title=f"Oil rate is {'down' if chg < 0 else 'up'} {abs(chg):.1f}% on the year before",
+                          xaxis_title="month", yaxis_title="oil rate (bbl/d)")
+        show(style(fig, 360))
     with right:
         g = a.groupby(["month", "group"], as_index=False)["est_lost_oil_m3"].sum()
         g["bbl_d"] = g["est_lost_oil_m3"] * M3_TO_BBL / month_days(g["month"])
         fig = px.bar(g, x="month", y="bbl_d", color="group", color_discrete_map=GROUP_COLORS,
                      category_orders={"group": list(GROUP_COLORS)},
-                     labels={"bbl_d": "bbl/d", "month": "", "group": ""})
+                     labels={"bbl_d": "lost oil (bbl/d)", "month": "month", "group": ""})
         fig.update_traces(marker_line_width=0, hovertemplate="%{x|%b %Y}<br>%{y:,.0f} bbl/d<extra>%{fullData.name}</extra>")
-        fig.update_layout(title="Avoidable lost oil by cause (bbl/d, monthly)", bargap=0.15)
-        show(style(fig))
+        eq = 100 * g.loc[g["group"] == "Equipment failure", "bbl_d"].sum() / max(g["bbl_d"].sum(), 1e-9)
+        fig.update_layout(title=f"Equipment failures cause about {eq:.0f}% of avoidable lost oil since "
+                                f"{g['month'].min():%b %Y}",
+                          bargap=0.15, xaxis_title="month", yaxis_title="lost oil (bbl/d)")
+        show(style(fig, 360))
     st.caption("Equipment failure = rod, pump and tubing/packer failures. "
                "Lost oil = the well's trailing 30-day median oil rate × hours down / 24, per downtime day. "
                f"Validated against operator-reported lost oil: totals within "
@@ -199,9 +190,11 @@ with tabs[1]:
                                              "%{customdata[1]:,.0f} well-hours down<br>"
                                              "≈ $%{customdata[2]:,.0f}<extra></extra>"))
         fig.update_traces(cliponaxis=False)
-        fig.update_layout(title=f"Lost oil by cause, {y0}-{y1} (bbl) - equipment failures in blue",
-                          xaxis_title="bbl", bargap=0.25, xaxis_range=[0, cat["bbl"].max() * 1.15])
+        fig.update_layout(title=f"{cat.iloc[-1]['loss_category']} loses the most oil, {y0}-{y1}",
+                          xaxis_title="lost oil (bbl)", bargap=0.25, xaxis_range=[0, cat["bbl"].max() * 1.15])
         show(style(fig, 460))
+        ui.explain("Blue = equipment failures (rod, pump, tubing). Grey = other causes. Labels give the share of all "
+                   "avoidable lost oil.")
     with right:
         ac = a.groupby(["field_operating_area", "group"], as_index=False)["est_lost_oil_m3"].sum()
         top_a = ac.groupby("field_operating_area")["est_lost_oil_m3"].sum().nlargest(12).index
@@ -211,12 +204,12 @@ with tabs[1]:
         fig = px.bar(ac, y="field_operating_area", x="bbl", color="group", orientation="h",
                      color_discrete_map=GROUP_COLORS, category_orders={"group": list(GROUP_COLORS),
                                                                        "field_operating_area": order[::-1]},
-                     labels={"bbl": "bbl", "field_operating_area": "", "group": ""})
+                     labels={"bbl": "lost oil (bbl)", "field_operating_area": "", "group": ""})
         fig.update_traces(marker_line_width=0, hovertemplate="%{y}<br>%{x:,.0f} bbl<extra>%{fullData.name}</extra>")
-        fig.update_layout(title="Lost oil by area (top 12)", bargap=0.25)
+        fig.update_layout(title=f"{order[-1]} loses the most oil of the 12 worst areas", bargap=0.25)
         show(style(fig, 460))
 
-    st.subheader("Bad actors - wells losing the most oil to equipment failures")
+    st.subheader("Wells that lose the most oil to equipment failures")
     bw = D["loss_by_well_year"]
     bw = bw[bw["year"].between(y0, y1)]
     bwf = bw[bw["loss_category"].isin(FAILURE_CATEGORIES)].groupby("uwi")["est_lost_oil_m3"].sum()
@@ -231,7 +224,7 @@ with tabs[1]:
     t["failures_per_year"] = t["failures"] / (t["running_days"] / 365).clip(lower=0.25)
     t["failure_loss_bbl"] = t["failure_loss_m3"] * M3_TO_BBL
     t["failure_loss_$"] = t["failure_loss_m3"] * cad_per_m3
-    n_bad = st.slider("Show the top", 5, 40, 15, key="bad_n")
+    n_bad = st.slider("Number of wells to show", 5, 40, 15, key="bad_n")
     t = t.sort_values("failure_loss_bbl", ascending=False).head(n_bad)
     fig = ui.hbar([f"{w} · {ar}" for w, ar in zip(t["formatted_uwi"].fillna(t["uwi"]), t["field_operating_area"])],
                   t["failure_loss_bbl"],
@@ -244,7 +237,7 @@ with tabs[1]:
     ui.explain("Failures = repair-job events. A well with few failures but a long bar sat down for weeks waiting "
                "for a repair, which is a scheduling problem as much as an equipment one.")
 
-    st.subheader("Failure frequency - failures per running well-year")
+    st.subheader("How often wells fail, per running well-year")
     wy2 = D["well_year"][D["well_year"]["year"].between(y0, y1)].merge(
         D["wells"][["uwi", "field_operating_area", "pump_make"]], on="uwi", how="left")
     wy2 = area_filter(wy2)
@@ -258,7 +251,8 @@ with tabs[1]:
                                customdata=np.c_[r["wells"], r["failures"]],
                                hovertemplate="<b>%{y}</b><br>%{x:.2f} failures / well-yr<br>"
                                              "%{customdata[0]} wells, %{customdata[1]:,} failures<extra></extra>"))
-        fig.update_layout(title=f"{title} (≥15 wells)", xaxis_title="failures per well-year", bargap=0.3)
+        fig.update_layout(title=f"{title}: {r.iloc[-1][dim]} has the highest raw rate (groups of 15+ wells)",
+                          xaxis_title="failures per well-year", bargap=0.3)
         with col_:
             show(style(fig, 380))
     st.caption("Raw rates, not controlled for area, depth, fluid or well age - pump make and area are correlated. "
@@ -273,7 +267,7 @@ with tabs[2]:
     with c1:
         day = st.date_input("Watchlist date", value=last.date(), min_value=rs["production_date"].min().date(),
                             max_value=last.date())
-        k = st.slider("Watchlist size (wells/day)", 5, 100, 25, 5)
+        k = st.slider("Number of wells to list", 5, 100, 25, 5)
     day = pd.Timestamp(day)
     n_days = rs["production_date"].nunique()
     n_watch = (rs["risk"] >= info["alert_threshold"]).sum() / n_days
@@ -287,7 +281,7 @@ with tabs[2]:
                                                     "surface_latitude", "surface_longitude"]], on="uwi")
     today["drivers"] = today["uwi"].map(wl["drivers"]) if day == last else ""
     today["status"] = np.select([today["risk"] >= info["alarm_threshold"], today["risk"] >= info["alert_threshold"]],
-                                ["⛔ ALARM", "⚠ WATCH"], "-")
+                                ["ALARM", "WATCH"], "-")
     with c2:
         st.markdown(f"**{len(today)} highest-risk running wells on {day.date()}** - probability that a "
                     f"failure-driven outage starts within 14 days. Field base rate ≈ {100 * info['base_rate']:.0f}%. "
@@ -303,23 +297,25 @@ with tabs[2]:
                   100 * today["risk"], colors=col,
                   text=[f"{st_} · {d}" if isinstance(d, str) and d else st_ for st_, d in zip(today["status"], today["drivers"])],
                   xaxis="chance a failure outage starts within 14 days (%)", hover="%{y}<br>%{x:.0f}%<extra></extra>",
-                  title=f"Highest-risk running wells on {day.date()}")
+                  title=f"{int((today['risk'] >= info['alarm_threshold']).sum())} of the {len(today)} listed wells "
+                        f"are at ALARM level on {day:%d %b %Y}")
     fig.update_xaxes(range=[0, 100 * today["risk"].max() * 2.2 if len(today) else 100])
     show(fig)
-    ui.explain("Red = ALARM, amber = WATCH, blue = on the list but below the watch line. The text after each bar "
-               "lists the top reasons the model gives (latest day only).")
+    ui.explain("Red = ALARM, amber = WATCH, blue = on the list but below the WATCH line. The text after each bar "
+               "gives the model's top reasons (latest day only).")
     m = today.dropna(subset=["surface_latitude"])
     if len(m):
         fig = go.Figure(go.Scattermap(lat=m["surface_latitude"], lon=m["surface_longitude"], mode="markers",
                                       marker=dict(size=12, color=m["risk"], colorscale=SEQ_BLUE, cmin=0,
                                                   cmax=max(0.5, m["risk"].max()), showscale=True,
-                                                  colorbar=dict(title="risk")),
+                                                  colorbar=dict(title="chance of failure<br>in 14 days")),
                                       text=m["formatted_uwi"] + "<br>" + m["field_operating_area"],
                                       hovertemplate="%{text}<br>risk %{marker.color:.2f}<extra></extra>"))
         fig.update_layout(map=dict(style="open-street-map", center=dict(lat=m["surface_latitude"].mean(),
                                                                          lon=m["surface_longitude"].mean()), zoom=6),
                           height=420, margin=dict(l=0, r=0, t=0, b=0))
         show(fig)
+        ui.explain("Map of the listed wells. Darker blue = higher chance of a failure outage in the next 14 days.")
     if day < last - pd.Timedelta(days=14):
         hit = today["y"].fillna(0).astype(int)
         st.success(f"Hindsight check for {day.date()}: {hit.sum()} of these {len(today)} wells actually had a "
@@ -360,7 +356,8 @@ with tabs[3]:
                 fig.add_vline(x=e["onset_date"], line=dict(color=CRITICAL, width=1), row=r, col=1)
         style(fig, 660)
         fig.update_layout(hovermode="x unified", margin=dict(t=40, b=40),
-                          legend=dict(yanchor="top", y=-0.05, orientation="h", x=0))
+                          legend=dict(yanchor="top", y=-0.05, orientation="h", x=0),
+                          title=f"Oil, pump efficiency and failure risk for {labels.get(uwi, uwi) or uwi}")
         show(fig)
         st.caption("Red vertical lines = failure outages (repair-job events). Risk is the out-of-sample "
                    "model score (trained on data up to 2024).")
@@ -372,7 +369,8 @@ with tabs[3]:
                                  marker_color=ORANGE, customdata=np.c_[evw["component"].astype(str), evw["outage_days"]],
                                  hovertemplate="%{x|%d %b %Y}: %{y:.1f} m³ during a %{customdata[1]:.0f}-day "
                                                "%{customdata[0]} outage<extra></extra>"))
-            fig.update_layout(title="Oil lost around each failure", barmode="stack", yaxis_title="m³")
+            fig.update_layout(title="Oil lost before and during each failure", barmode="stack",
+                          yaxis_title="lost oil (m³)", xaxis_title="failure date")
             show(style(fig, 280))
             ui.explain("One stack per failure: the decline before it (yellow) and the outage itself (orange).")
 
@@ -380,7 +378,7 @@ with tabs[3]:
 with tabs[4]:
     mt = D["metrics"].set_index("model")
     info = D["model_info"]
-    k = st.radio("Daily watchlist size K", [10, 25, 50], index=1, horizontal=True)
+    k = st.radio("Wells on the daily watchlist (K)", [10, 25, 50], index=1, horizontal=True)
     c1, c2, c3, c4 = st.columns(4)
     lg = mt.loc["LightGBM"]
     c1.metric("Precision of watchlist", f"{100 * lg[f'precision@{k}']:.0f}%",
@@ -404,14 +402,17 @@ with tabs[4]:
                              marker_color=cmp["color"], hovertemplate="%{y}: %{x:.0f}%<extra></extra>"), 1, 1)
         fig.add_trace(go.Bar(y=cmp["model"], x=cmp[f"caught_per_100_alerts@{k}"], orientation="h",
                              marker_color=cmp["color"], hovertemplate="%{y}: %{x:.0f}<extra></extra>"), 1, 2)
-        fig.update_layout(title=f"Model vs baselines at K={k}", showlegend=False, bargap=0.3)
+        best = cmp.loc[cmp[f"caught_per_100_alerts@{k}"].idxmax(), "model"]
+        fig.update_layout(title=f"{best} catches the most failures per 100 alerts at K = {k}", showlegend=False,
+                          bargap=0.3)
         show(style(fig, 340))
         st.caption("Random lists catch failures only by flagging ~7× more wells; per alert they are ~6× worse.")
     with right:
         imp = D["importance"].head(12).iloc[::-1]
         fig = go.Figure(go.Bar(y=imp["label"], x=imp["gain_pct"], orientation="h", marker_color=BLUE,
                                hovertemplate="%{y}: %{x:.1f}% of gain<extra></extra>"))
-        fig.update_layout(title="What drives the score (share of model gain)", xaxis_title="%", bargap=0.3)
+        fig.update_layout(title=f"{imp.iloc[-1]['label']} drives the score most", xaxis_title="share of model gain (%)",
+                          bargap=0.3)
         show(style(fig, 340))
 
     st.subheader("Value calculator")
@@ -422,7 +423,7 @@ with tabs[4]:
                       help="Pre-staged rod truck / parts / crew shortens the outage.") / 100
     a_pre = c2.slider("Share of pre-failure decline avoided", 0, 100, 25, 5,
                       help="Earlier intervention while the well is still declining.") / 100
-    check_cost = c3.number_input("Cost per proactive check ($)", 0, 5000, 300, 50,
+    check_cost = c3.number_input("Cost per proactive check (C$)", 0, 5000, 300, 50,
                                  help="Operator site visit / pump diagnostic for each new alert.")
     te = D["test_events"]
     caught = te[te[f"caught@{k}"]]
@@ -433,8 +434,8 @@ with tabs[4]:
     checks = lg[f"alerts_per_day@{k}"] * 365 * check_cost
     c1, c2, c3 = st.columns(3)
     c1.metric("Oil protected per year", f"{saved_m3 * M3_TO_BBL / yrs:,.0f} bbl")
-    c2.metric("Gross value per year", f"${gross / 1e6:,.2f}M")
-    c3.metric("Net of check costs", f"${(gross - checks) / 1e6:,.2f}M", f"checks ≈ ${checks / 1e3:,.0f}k/yr",
+    c2.metric("Gross value per year", f"C${gross / 1e6:,.2f}M")
+    c3.metric("Net of check costs", f"C${(gross - checks) / 1e6:,.2f}M", f"checks ≈ C${checks / 1e3:,.0f}k/yr",
               delta_color="off", delta_arrow="off")
     st.caption(f"{len(caught):,} of {info['n_test_events']:,} scorable test-period failure events were flagged "
                f"at K={k}. Repair cost "
@@ -446,7 +447,7 @@ with tabs[4]:
             fig.add_trace(go.Scatter(x=[10, 25, 50], y=[100 * mt.loc[model_, f"precision@{kk}"] for kk in (10, 25, 50)],
                                      mode="lines+markers", name=model_, line=dict(color=color, width=2.5 if model_ == "LightGBM" else 1.5)))
         fig.update_layout(title="Share of listed wells that fail within 14 days, by list size", xaxis_title="wells on the list",
-                          yaxis_title="%", xaxis=dict(tickvals=[10, 25, 50]))
+                          yaxis_title="listed wells that fail (%)", xaxis=dict(tickvals=[10, 25, 50]))
         show(style(fig, 300))
         ui.explain("Higher is better. The blue model line stays above the simple rules at every list size.")
     with st.expander("Precision-recall curve (well-day level)"):
@@ -454,7 +455,9 @@ with tabs[4]:
         fig = go.Figure(go.Scatter(x=pr["recall"], y=pr["precision"], mode="lines", line=dict(color=BLUE, width=2),
                                    hovertemplate="recall %{x:.2f}<br>precision %{y:.2f}<extra></extra>"))
         fig.add_hline(y=info["base_rate"], line=dict(color=MUTED, dash="dot"), annotation_text="base rate")
-        fig.update_layout(xaxis_title="recall", yaxis_title="precision")
+        fig.update_layout(title="Precision falls as the model flags more of the failures",
+                          xaxis_title="recall (share of failures flagged)",
+                          yaxis_title="precision (share of flags that fail)")
         show(style(fig, 320))
 
 # ================================================================= DATA QUALITY
@@ -464,8 +467,9 @@ with tabs[5]:
     fig = go.Figure(go.Bar(y=st_["tag"], x=st_["repeat_prev_day_pct"], orientation="h",
                            marker_color=np.where(st_["repeat_prev_day_pct"] > 90, ORANGE, BLUE),
                            hovertemplate="%{y}: %{x:.1f}% repeat previous day<extra></extra>"))
-    fig.update_layout(title="Share of daily readings identical to the previous day (orange = carried-forward "
-                            "manual readings)", xaxis_title="%", bargap=0.3)
+    fig.update_layout(title=f"{int((st_['repeat_prev_day_pct'] > 90).sum())} tags repeat the previous day's reading "
+                            "more than 90% of the time (orange)", xaxis_title="readings identical to the previous day (%)",
+                      bargap=0.3)
     show(style(fig, 340))
     dq = D["dq_report"]
     dqs = pd.Series({k_: v_ for k_, v_ in dq.items() if isinstance(v_, (int, float)) and k_ != "rows_raw"}).sort_values(
@@ -475,7 +479,7 @@ with tabs[5]:
                   title=f"Data problems fixed by the pipeline (of {dq.get('rows_raw', 0):,} daily rows)")
     fig.update_xaxes(type="log")
     show(fig)
-    ui.explain("Out-of-range values (999,999 placeholders, negative volumes) are set to blank; duplicates are dropped.")
+    ui.explain("Out-of-range values (999,999 placeholders, negative volumes) are set to blank. Duplicates are dropped.")
     ev = D["event_validation"]
     st.markdown(f"**Failure label check (2025-26):** {ev['pct_failure_records_matched_by_job_event']}% of logged "
                 f"failures match a repair-job event within ±{ev['match_window_days']} days; "

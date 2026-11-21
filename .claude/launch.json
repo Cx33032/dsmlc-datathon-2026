@@ -4,8 +4,28 @@
     {
       "name": "dashboard",
       "runtimeExecutable": ".venv/Scripts/streamlit.exe",
-      "runtimeArgs": ["run", "app/dashboard.py", "--server.port", "8501", "--server.headless", "true"],
+      "runtimeArgs": [
+        "run",
+        "app/dashboard.py",
+        "--server.port",
+        "8501",
+        "--server.headless",
+        "true"
+      ],
       "port": 8501
+    },
+    {
+      "name": "app",
+      "runtimeExecutable": ".venv/Scripts/streamlit.exe",
+      "runtimeArgs": [
+        "run",
+        "app/app.py",
+        "--server.port",
+        "8502",
+        "--server.headless",
+        "true"
+      ],
+      "port": 8502
     }
   ]
 }
