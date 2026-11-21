@@ -1,6 +1,6 @@
 """Operator dashboard - Topic 2 (where oil is lost) + Topic 1 (which wells fail next).
 
-Run:  streamlit run app/dashboard.py      (after `python run_pipeline.py`)
+A page of the app (app/app.py). The data mode and the oil price come from the shared sidebar (app/ui.py).
 """
 from __future__ import annotations
 
@@ -17,10 +17,12 @@ from plotly.subplots import make_subplots
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from src.config import DEFAULT_NETBACK_CAD_PER_BBL, M3_TO_BBL, OUT  # noqa: E402
+sys.path.insert(0, str(ROOT / "app"))
+from src.config import M3_TO_BBL  # noqa: E402
 from src.data import FAILURE_CATEGORIES  # noqa: E402
+import ui  # noqa: E402
 
-st.set_page_config(page_title="Well Reliability & Loss Monitor", layout="wide", page_icon="🛢️")
+OUT = ui.out_dir()
 
 # Validated reference palette (dataviz skill, light steps). Slots in fixed order.
 BLUE, ORANGE, AQUA, YELLOW = "#2a78d6", "#eb6834", "#1baf7a", "#eda100"
@@ -88,20 +90,16 @@ def group_of(cat: str) -> str:
 if not (OUT / "risk_scores.parquet").exists():
     st.error("No pipeline outputs found. Run `python run_pipeline.py` first.")
     st.stop()
-STAMP = (OUT / "model_info.json").stat().st_mtime
+STAMP = (OUT / "model_info.json").stat().st_mtime + hash(str(OUT)) % 1000
 D = load(STAMP)
 lm = D["loss_monthly"].copy()
 lm["group"] = lm["loss_category"].map(group_of)
 avoid = lm[lm["loss_category"] != "Shut-in (Uneconomic/LTSI)"]
 
 # ---------------------------------------------------------------- sidebar
-st.sidebar.title("Well Reliability & Loss Monitor")
-st.sidebar.caption("Heavy-oil PCP wells - DSMLC Datathon 2026")
 areas = sorted(lm["field_operating_area"].dropna().unique())
 sel_areas = st.sidebar.multiselect("Operating areas", areas, placeholder="All areas")
-netback = st.sidebar.number_input("Netback assumption (CAD/bbl)", 5.0, 150.0, DEFAULT_NETBACK_CAD_PER_BBL, 5.0,
-                                  help="Assumed value of one barrel of lost oil. Not from the dataset - set to "
-                                       "a current heavy-oil netback.")
+netback = ui.price_bbl()
 cad_per_m3 = netback * M3_TO_BBL
 
 

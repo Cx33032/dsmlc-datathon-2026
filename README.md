@@ -10,11 +10,14 @@
 
 ## Research questions
 
-1. **Where is oil being lost, and how much of it is avoidable?** Attribute every downtime day
-   across 2,240 producing wells (2021 to Oct 2026) to a cause, and value it.
-2. **Can we flag the wells that will fail in the next 14 days early enough to act?** Measure how
-   many failures a daily 25-well watchlist catches on held-out 2025-26 data, and how many days of
-   warning it gives.
+One platform, three decisions on three time horizons, each feeding the next:
+
+1. **Today: which outage do we look at first?** Rank newly reported equipment outages by the oil they will lose
+   over the next 3 days. When a whole battery trips, flag the wells that stay down after their peers restart.
+2. **At the pull: what do we do once the crew is there?** On a chronic rod well: a full new string, a section at
+   a known depth, and/or inhibitor plus a corrosion-resistant grade.
+3. **Between failures: which wells are heading for trouble?** The 14-day failure early-warning model and lost-oil
+   attribution, plus a test of whether volatile operation ("mechanical whiplash") precedes rod failures.
 
 ## Motivation
 
@@ -37,17 +40,31 @@ Avoidable downtime is a lever that doesn't need new wells.
 | | **37 failures caught per 100 alerts**, vs 5 for a random list. A failure-history rule is about as precise per alert but catches only half as many failures (12%) |
 | **Conservative value** | About 18k bbl/yr protected, **≈ $0.55M/yr net** of inspection costs. This assumes 30% of outage loss and 25% of pre-failure decline avoided per caught failure, $50/bbl and $300 per check. It excludes repair-cost savings. Every assumption is adjustable in the dashboard |
 | **Data quality** | Pressure, torque, motor-current and RPM tags repeat the previous day's value 95-98% of the time (carried-forward manual readings). We recommend automating them; today they add little early warning |
+| **Today: outage queue** (2026 holdout) | Reviewing the top 2 new outages a day captures **52%** of next-3-day oil exposure vs **43%** when ranking by day-1 reported loss (oracle 62%) |
+| **Today: facility restarts** | 82 synchronized outage days at 14 facilities (76 incidents). **73 wells stayed down 3+ days after 75% of their peers restarted**, losing about 2,400 m³ while they lagged |
+| **At the pull: new string** | 145 chronic wells (≥3 rod repairs in a year) cost C$8.97M all-in last year. A new string halves the hazard of the next repair (Cox **HR 0.49**, 0.42-0.58); break-even is about 1 failure/yr. **C$7.43M net over 2 years** (C$5.89M at the pessimistic CI); 14 wells pay back even when every pessimistic case is stacked |
+| **At the pull: where it breaks** | 983 rod breaks located from crew text (45%). Same-well breaks repeat within 50 m **48.6%** of the time vs 16.7% by chance (2.9×, p = 0.001); 54 program wells break inside one ≤150 m band |
+| **Between failures: whiplash** (tested, rejected) | Day-to-day volatility in RPM, torque, current and run hours does not predict rod failures once history is controlled for (Cox HR 0.98 per SD, 0.95-1.01). The case-crossover edge (OR 1.09) comes from a few tails. Daily manual readings can't see real shocks |
 
 ## Solution
 
-1. **Operator dashboard** (Streamlit, `app/dashboard.py`) with six tabs: Overview, Where oil is
-   lost (loss Pareto, bad actors, failure frequency), Risk watchlist with SHAP reasons, Well
-   drill-down, Model & value (with a value calculator), and Data quality.
-2. **Canary Historian integration** (`canary/`). It exports about 25k tags, including model risk,
-   watch/alarm level and estimated lost oil, with Canary quality codes. Carried-forward manual
-   readings are marked *Uncertain*. A replay mode streams days into the CSV Collector for a live
-   demo. See [canary/README.md](canary/README.md) for the tag model, the Views asset tree and the
-   Axiom screens.
+A Streamlit app (`app/app.py`) with one page per decision. It reads only precomputed artifacts.
+
+| Page | Answers |
+|---|---|
+| **Today's queue** | Which new outage to review first. Chronic rod wells show their at-the-pull recommendation and link to the Well Card. Decision mode hides outcomes; replay mode shows them, labelled retrospective |
+| **Facility restarts** | Synchronized outages grouped into facility incidents; wells still down 3+ days after 75% of peers are back |
+| **Well card** | For one well: the recommendation with its evidence counts, rod-job timeline, break-depth strip, crew notes (private mode only), per-well economics, 90-day trends |
+| **Replacement program** | The 145 chronic wells, the break-even chart with sliders, the sensitivity table, and the worst-14 first wave |
+| **Field monitor** | Lost oil by cause and the 14-day failure early-warning watchlist |
+| **Evidence** | Dispatch replay vs oracle, Cox and Kaplan-Meier, the repeat-depth permutation, crew text vs coded cause, the Whiplash test, the traps we avoided |
+| **Assumptions & limits** | What to doubt, and how we would check it |
+
+There is one oil-price slider (default WCS Hardisty less a 15% field-gate haircut = C$69.7/bbl), and every $
+figure recomputes from it. The same decision rule (`src/rules.py`) feeds the queue and the Well Card.
+
+**Canary Historian integration** (`canary/`) exports about 25k tags, including model risk, watch/alarm level and
+estimated lost oil, with Canary quality codes. See [canary/README.md](canary/README.md).
 
 ## Methods
 
@@ -100,41 +117,82 @@ failures only because it flags about 7× more wells.
 
 ```powershell
 uv venv --python 3.12 .venv; uv pip install --python .venv/Scripts/python.exe -r requirements.txt
-# put the three competition .parquet files in the repo root (not committed), or set DATA_DIR
-.venv/Scripts/python.exe make_data_summary.py      # -> DATA_SUMMARY.md
-.venv/Scripts/python.exe run_pipeline.py           # -> outputs/ (about 30 s)
-.venv/Scripts/streamlit.exe run app/dashboard.py   # dashboard at http://localhost:8501
-.venv/Scripts/python.exe canary/export_to_canary.py  # -> outputs/canary/*.csv for the CSV Collector
 ```
 
+**From a clean clone (synthetic demo data, no competition data needed):**
+
+```powershell
+.venv/Scripts/streamlit.exe run app/app.py
 ```
-src/config.py          paths, split dates, netback assumption
-src/data.py            loading, cleaning, downtime categories, failure events
-src/features.py        past-only features + 14-day label
-src/losses.py          lost-oil estimate, loss tables, per-event impact
-src/model.py           LightGBM training, top-K evaluation, baselines, SHAP
-run_pipeline.py        end-to-end run -> outputs/
-make_data_summary.py   reproducible data profile -> DATA_SUMMARY.md
-app/dashboard.py       Streamlit operator dashboard
-canary/                Canary CSV Collector export, config and setup guide
+
+The first launch generates fake wells, outages, rod jobs and crew-style notes with the competition schemas and
+builds the demo artifacts (about 30 s). You can also build them yourself with
+`python build_artifacts.py --demo`.
+
+**With the competition data (private mode):**
+
+```powershell
+.venv/Scripts/python.exe build_artifacts.py --data-dir <folder with the 3 parquets> --out-dir outputs
+.venv/Scripts/streamlit.exe run app/app.py
+.venv/Scripts/python.exe -m pytest
+```
+
+`build_artifacts.py` runs, in about 1.5 minutes:
+- the pipeline (cleaning, lost oil, early-warning model, dispatch queue, facility restarts);
+- Idea 1 (replace vs repair) and Idea 5 (break depths);
+- the Whiplash test;
+- the decision rule for every well and every queue ticket.
+
+The tests check that the app's default numbers reproduce the source results, run the leakage checks, and cover the
+decision rule's edge cases.
+
+```
+app/app.py, app/ui.py, app/views/   Streamlit pages; app/dashboard.py = Field monitor page
+build_artifacts.py                  builds every artifact the app reads
+src/dispatch.py                     outage queue + 2026 replay
+src/facility.py                     facility incidents + restart laggards
+src/rules.py                        at-the-pull decision rule (unit-tested)
+src/economics.py                    replace-vs-repair economics at any price
+src/shock.py                        Mechanical Shock Index (past-only)
+src/demo.py                         synthetic data with the competition schemas
+src/data.py, features.py, losses.py, model.py   cleaning, features, lost oil, early-warning model
+data/ideas/1, 5, whiplash           replace-vs-repair, break-depth mining, whiplash test
+tests/                              reproduction, leakage, decision rule
+canary/                             Canary CSV Collector export, config and setup guide
 ```
 
 ## External resources
 
 - Canary Labs, *How to Configure the CSV Collector (v26)*, help center article (collector config keys and quality codes)
 - PetroWiki: progressing cavity pumps; Dataset Handbook terms (PCP, rod string, water cut)
-- Libraries: pandas, pyarrow, LightGBM, scikit-learn, Streamlit, Plotly
+- Price inputs (cited in `data/ideas/common.py`): WTI from OilPriceAPI (2026-11-19), the WCS Hardisty differential
+  from CalRock via Reuters (2026-11-13), USD/CAD from the Bank of Canada (2026-11-20)
+- Methods: Cox proportional hazards and Kaplan-Meier (statsmodels), case-crossover design with conditional
+  logistic regression, permutation tests
+- Libraries: pandas, pyarrow, DuckDB, LightGBM, scikit-learn, statsmodels, SciPy, Streamlit, Plotly
 
 ## AI disclosure
 
-This project was built with help from **Claude (Anthropic) via Claude Code**, which wrote most of
-the code, the data profile, the dashboard and the documentation, working from the team's
-direction. The team reviewed the methods and the numbers, and is responsible for every claim.
-Specific checks: the time-split design, the label check against the failure log, and the lost-oil
-check against reported values.
+This project was built with help from **Claude (Anthropic) via Claude Code**, working from the team's direction.
+Claude wrote most of:
+- the pipeline, the data profile and the documentation;
+- the merged Streamlit app, the dispatch and facility modules, the decision rule and the synthetic-data generator;
+- the Whiplash test and the test suite.
+
+Team members wrote the idea analyses in `data/ideas/` with AI assistance. The team reviewed the methods and the
+numbers, and is responsible for every claim.
+
+Specific checks:
+- the time splits;
+- the label check against the failure log and the lost-oil check against reported values;
+- the reproduction tests;
+- the leakage tests.
+
+No crew text or well data was sent to any external AI service by the app. The optional text extraction is a
+regex parser that runs locally.
 
 ## Data
 
-The competition dataset belongs to Strathcona Resources and is **not** included in this repository
-(see `.gitignore`), in line with the competition terms. `outputs/` holds derived data and is also
-excluded.
+The competition dataset belongs to Strathcona Resources and is **not** included in this repository (see
+`.gitignore`), in line with the competition terms. `outputs/` holds derived private artifacts and is excluded.
+Screenshots in `docs/screenshots/` come from the synthetic demo mode.

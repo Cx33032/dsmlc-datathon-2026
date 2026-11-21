@@ -22,8 +22,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-OUT = Path(__file__).resolve().parent / "out"
-OUT.mkdir(exist_ok=True)
+OUT = cm.out_dir(__file__, "5")
 IDEA = "5"
 con = cm.con()
 cm.style()
@@ -169,7 +168,7 @@ emit("Agreement summary", pd.Series({
     "corrosion_coded": int((nc.cause == "Corrosion").sum())}))
 
 # ------------------------------------------------------------------ chronic wells (idea 1 list) and their break bands
-chronic_path = Path(__file__).resolve().parents[1] / "1" / "out" / "chronic_wells.csv"
+chronic_path = cm.out_dir(str(Path(__file__).resolve().parents[1] / "1" / "x.py"), "1") / "chronic_wells.csv"
 if chronic_path.exists():
     ch = pd.read_csv(chronic_path)
     cl = loc[loc.uwi.isin(ch.uwi)]
@@ -241,3 +240,20 @@ if chronic_path.exists():
     cm.save(fig, IDEA, "5d_chronic_well_break_bands.png")
 
 (OUT / "results.txt").write_text("".join(lines), encoding="utf-8")
+
+# ------------------------------------------------------------------ machine-readable artifacts for the app
+import json  # noqa: E402
+pd.Series(perm_share, name="share_within_50m").to_frame().to_csv(OUT / "perm_share.csv", index=False)
+pairs[["uwi", "fd", "prev_fd", "depth_m", "prev_depth", "gap_m", "days_apart"]].to_csv(OUT / "pairs.csv", index=False)
+kw.reset_index().to_csv(OUT / "keywords_by_cause.csv", index=False)
+ct.reset_index().to_csv(OUT / "narrative_vs_coded.csv", index=False)
+(OUT / "metrics.json").write_text(json.dumps({
+    "rod_failures": int(len(f)), "located_total": int(f.depth_m.notna().sum()),
+    "located_pct": float(round(100 * f.depth_m.notna().mean(), 1)),
+    "pairs": int(len(pairs)), "share_within_50m": float(obs), "baseline_share_within_50m": float(np.mean(perm_share)),
+    "lift": float(obs / np.mean(perm_share)),
+    "perm_p": float((np.sum(np.array(perm_share) >= obs) + 1) / (len(perm_share) + 1)),
+    "fatigue_linked": int(len(fat)), "fatigue_mention_pit_corr": int((fat.kw_pitting | fat.kw_corrosion).sum()),
+    "program_wells_2plus": int(len(per2)) if chronic_path.exists() else None,
+    "program_wells_band_le_150": int((per2.band_m <= 150).sum()) if chronic_path.exists() else None,
+}, indent=2))
