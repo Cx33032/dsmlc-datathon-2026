@@ -26,14 +26,14 @@ ui.PAGES.update({
     "well": st.Page(str(HERE / "views" / "well_card.py"), title="Well card", icon=":material/oil_barrel:"),
     "program": st.Page(str(HERE / "views" / "program.py"), title="Replacement program", icon=":material/construction:"),
     "monitor": st.Page(str(HERE / "dashboard.py"), title="Field monitor", icon=":material/monitoring:"),
-    "evidence": st.Page(str(HERE / "views" / "evidence.py"), title="Evidence", icon=":material/science:"),
+    "evidence": st.Page(str(HERE / "views" / "evidence.py"), title="Evidence and data sources", icon=":material/science:"),
     "limits": st.Page(str(HERE / "views" / "assumptions.py"), title="Assumptions & limits", icon=":material/rule:"),
 })
 nav = st.navigation({
     "Today": [ui.PAGES["queue"], ui.PAGES["facility"]],
     "At the pull": [ui.PAGES["well"], ui.PAGES["program"]],
     "Between failures": [ui.PAGES["monitor"]],
-    "Proof": [ui.PAGES["evidence"], ui.PAGES["limits"]],
+    "Can you trust it?": [ui.PAGES["evidence"], ui.PAGES["limits"]],
 })
 ui.sidebar()
 nav.run()

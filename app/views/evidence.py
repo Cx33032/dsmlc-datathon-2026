@@ -6,11 +6,47 @@ import streamlit as st
 
 import ui
 
-st.title("Evidence")
-ui.intro("Why should anyone trust the queue, the new-string advice and the depth bands, and what did we test and drop?",
-         ["Pick a <b>tab</b>: one per decision, plus the idea we rejected and the traps we avoided.",
-          "Use the <b>selectors</b> above each chart to switch the measure or the scenario.",
-          "Read the grey note under each chart: it says how to read it and what it proves."])
+top_slot = ui.header(
+    "Can you trust these numbers?",
+    how=["Read where the numbers come from, just below.",
+         "Pick a tab: one per decision, plus the idea we tested and the traps we avoided.",
+         "Use the selectors above a chart to switch the measure or the scenario.",
+         "Read the note under each chart. It says how to read the chart and what it shows.",
+         "For what the numbers cannot show, open Assumptions & limits."],
+    terms=["Replay", "Exposure", "Recorded loss", "HR", "CI", "Cox model", "Chronic rod well"],
+    extra_terms={"K": "The number of outages reviewed per day.",
+                 "Permutation test": "Shuffle the data many times to see what chance alone produces, then compare "
+                                     "the real result with that range.",
+                 "OR and SD": "Odds ratio and standard deviation.",
+                 "Mechanical Whiplash": "The idea that volatile pump operation comes before rod failures."})
+
+rep0, econ0 = ui.art("dispatch_replay.csv"), ui.art("ideas/1/economics.json")
+parts = []
+if rep0 is not None and len(r0 := rep0[(rep0["K"] == 2) & (rep0["outcome"] == "reconstructed exposure")]):
+    parts.append(f"Re-run on every day of 2026, the queue caught {100 * r0['dispatch'].iloc[0]:.0f}% of the next 3 days' "
+                 f"lost oil at 2 reviews a day, against {100 * r0['first_day_loss'].iloc[0]:.0f}% for ranking by day-1 "
+                 "loss.")
+if econ0 is not None:
+    parts.append(f"On wells with 2 or more prior rod repairs, the next rod repair after a new string comes at about {econ0['hr_chronic']:.2f} times the rate "
+                 f"after a repair (95% CI {econ0['hr_chronic_lo']:.2f} to {econ0['hr_chronic_hi']:.2f}).")
+if parts:
+    ui.summary(top_slot, " ".join(parts))
+
+# ---------------------------------------------------------------- where the numbers come from
+with st.container(border=True):
+    st.markdown("**Where the numbers come from**")
+    if ui.is_demo():
+        st.markdown("Demo mode: synthetic wells, outages, rod jobs and crew-style notes with the same columns as the "
+                    "real files. The numbers are examples only.")
+    else:
+        st.markdown("Three operator files, Jan 2021 to Oct 2026, for 2,905 heavy-oil wells in Western Canada:\n"
+                    "- **Daily production:** one row per well per day, with downtime hours, reasons and pump readings.\n"
+                    "- **Well jobs:** one row per job (15,610), with job type and cost.\n"
+                    "- **Production failures:** one row per logged failure (2,873), with cause and crew comments.")
+    st.caption("Source: docs/Dataset_Handbook.md. The app reads only tables built from these files by "
+               "build_artifacts.py.")
+    st.page_link(ui.PAGES["limits"], label="See what the numbers cannot show: Assumptions & limits",
+                 icon=":material/arrow_forward:")
 
 
 def forest(rows, title, ref=1.0, xlabel="hazard ratio (log scale)"):
@@ -28,8 +64,8 @@ def forest(rows, title, ref=1.0, xlabel="hazard ratio (log scale)"):
 
 
 tab_q, tab_rod, tab_depth, tab_shock, tab_traps = st.tabs(
-    ["Today: dispatch replay", "At the pull: new string", "At the pull: break depth", "Between failures: whiplash",
-     "Traps we avoided"])
+    ["Today's queue: 2026 replay", "At the pull: new string", "At the pull: break depth",
+     "Between failures: whiplash test", "Traps we avoided"])
 
 # ---------------------------------------------------------------- dispatch
 with tab_q:
@@ -37,16 +73,18 @@ with tab_q:
     if rep is None:
         ui.require("dispatch_replay.csv")
     else:
-        st.markdown(f"Fitted on outages up to Dec 28, 2025; replayed on every day from Jan 1 to Oct 23, 2026 "
-                    f"({info.get('tickets_test', 0):,} outages, {info.get('tickets_per_day', 0):.1f} per day). Each "
-                    "day the top K tickets are reviewed; capture = their share of what all tickets went on to lose.")
+        st.markdown(f"The queue was fitted on outages up to Dec 28, 2025, then re-run on every day from Jan 1 to "
+                    f"Oct 23, 2026 ({info.get('tickets_test', 0):,} outages, {info.get('tickets_per_day', 0):.1f} per "
+                    "day). Each day the top K outages are reviewed. The chart shows their share of the oil that all "
+                    "outages went on to lose.")
         c1, c2 = st.columns([1.4, 2])
         outcome = c1.segmented_control("Measure", ["reconstructed exposure", "recorded loss"],
                                        default="reconstructed exposure", key="ev_outcome",
                                        help="Exposure = extra hours down × healthy rate. Recorded loss = the operator's "
                                             "own lost-oil field.") or "reconstructed exposure"
-        kk = c2.select_slider("Reviews per day", options=sorted(rep["K"].unique()), value=2, key="ev_k")
+        kk = c2.select_slider("Outages reviewed per day (K)", options=sorted(rep["K"].unique()), value=2, key="ev_k")
         r = rep[rep["outcome"] == outcome]
+        sel = r[r["K"] == kk].iloc[0]
         fig = go.Figure()
         for col, lab, color in (("first_day_loss", "rank by day-1 reported loss", ui.GRAY),
                                 ("dispatch", "this queue", ui.BLUE), ("oracle", "perfect hindsight", ui.MUTED)):
@@ -54,16 +92,17 @@ with tab_q:
                                      line=dict(color=color, width=2.5, dash="dot" if col == "oracle" else None),
                                      marker=dict(size=8), hovertemplate=lab + ": %{y:.1f}% at %{x} a day<extra></extra>"))
         fig.add_vline(x=kk, line=dict(color=ui.MUTED, width=1))
-        sel = r[r["K"] == kk].iloc[0]
-        fig.update_layout(title=f"Share of {outcome} caught, by how many outages are reviewed a day",
-                          xaxis=dict(title="outages reviewed per day", tickvals=sorted(rep["K"].unique())),
-                          yaxis=dict(range=[0, 100], title="%"))
+        fig.update_layout(title=f"At {kk} a day this queue catches {100 * sel['dispatch']:.0f}% of the {outcome}, "
+                                f"against {100 * sel['first_day_loss']:.0f}% for ranking by day-1 loss",
+                          xaxis=dict(title="outages reviewed per day (K)", tickvals=sorted(rep["K"].unique())),
+                          yaxis=dict(range=[0, 100], title=f"share of {outcome} caught (%)"))
         ui.show(ui.style(fig, 320))
         ui.explain(f"At {kk} a day this queue catches {100 * sel['dispatch']:.0f}%, ranking by day-1 loss "
                    f"{100 * sel['first_day_loss']:.0f}%, perfect hindsight {100 * sel['oracle']:.0f}%. The gap between the "
                    "blue and grey lines is the oil the queue saves.")
-        st.caption("Reconstructed from the team's Dispatch spec (the original notebook is not in this repo). The "
-                   "original report: 52.7% vs 43.9% exposure and 50.6% vs 48.8% recorded loss at K = 2.")
+        st.caption("This queue was rebuilt from the team's written Dispatch spec. The original notebook is not in "
+                   "this repo. The original report gave 52.7% vs 43.9% exposure and 50.6% vs 48.8% recorded loss "
+                   "at K = 2.")
 
 # ---------------------------------------------------------------- idea 1
 with tab_rod:
@@ -72,15 +111,19 @@ with tab_rod:
         ui.require("ideas/1/economics.json")
     else:
         st.markdown(f"**A new string halves the hazard of the next rod repair.** Cox model, stratified by area × year, "
-                    f"adjusted for prior failures, RPM and liquid rate (n = {econ['n_cox']:,} rod jobs, "
+                    f"adjusted for prior failures, pump speed (RPM) and liquid rate ({econ['n_cox']:,} rod jobs, "
                     f"{econ['events_cox']:,} repeat repairs).")
-        names = {"is_replace": "new string (vs repair)", "log_prior": "prior repairs (log)", "rpm100": "RPM per 100",
-                 "log_liq": "liquid rate (log)"}
+        names = {"is_replace": "new string (vs repair)", "log_prior": "prior repairs (log)",
+                 "rpm100": "pump speed, per 100 RPM", "log_liq": "liquid rate (log)"}
         which = st.segmented_control("Wells in the model", ["All rod jobs", "Chronic wells (2+ prior repairs)"],
                                      default="All rod jobs", key="cox_which") or "All rod jobs"
         t = ui.art("ideas/1/cox_all.csv" if which == "All rod jobs" else "ideas/1/cox_chronic.csv")
+        hr_new = t.loc[t["term"] == "is_replace", "HR"]
         ui.show(forest([(names.get(r.term, r.term), r.HR, r.HR_lo, r.HR_hi) for r in t.itertuples()],
-                       f"What changes the hazard of the next rod repair ({which.lower()})"))
+                       (f"A new string has a hazard ratio of {hr_new.iloc[0]:.2f} for the next rod repair "
+                        f"({which.lower()})" if len(hr_new) else
+                        f"What changes the hazard of the next rod repair ({which.lower()})"),
+                       xlabel="hazard ratio, log scale (below 1 = fewer repairs)"))
         ui.explain("Each dot is a hazard ratio with its 95% confidence interval. Left of the dotted line = fewer "
                    "repairs. The new string sits far to the left; prior repairs push the hazard up.")
         st.caption("RPM level has almost no adjusted effect (HR ≈ 0.97 per 100 rpm), which is why the Whiplash test "
@@ -95,8 +138,9 @@ with tab_rod:
                                      error_y=dict(type="data", symmetric=False, array=g["hi"] - g["rate"],
                                                   arrayminus=g["rate"] - g["lo"], color=ui.MUTED),
                                      customdata=g["n"], hovertemplate="%{y:.2f}/yr (n=%{customdata})<extra></extra>"))
-            fig.update_layout(title="Rod repairs per producing year, next 365 d", barmode="group",
-                              xaxis_title="rod repairs in the 365 d before the job", yaxis_title="repairs / yr")
+            fig.update_layout(title="Rod repairs per producing year in the 365 days after the job", barmode="group",
+                              xaxis_title="rod repairs in the 365 days before the job",
+                              yaxis_title="rod repairs per year")
             ui.show(ui.style(fig, 320))
             ui.explain("Group wells by how often they failed before. In every group, wells that got a new string "
                        "(blue) failed less the following year.")
@@ -107,8 +151,9 @@ with tab_rod:
                 d = km[km["group"] == g]
                 fig.add_trace(go.Scatter(x=d["t"], y=d["surv"], mode="lines", line=dict(color=color, width=2, shape="hv"),
                                          name=f"{g} (n={int(d['n'].iloc[0]) if len(d) else 0})"))
-            fig.update_layout(title="Chronic wells: share with no further rod repair", xaxis_title="days since the job",
-                              yaxis=dict(range=[0, 1], title="share"))
+            fig.update_layout(title="Chronic rod wells: share still running without another rod repair",
+                              xaxis_title="days since the job",
+                              yaxis=dict(range=[0, 1], title="share of wells with no repair yet"))
             ui.show(ui.style(fig, 320))
             ui.explain("Higher line = more wells still running without another rod repair. The blue line stays higher.")
 
@@ -134,7 +179,7 @@ with tab_depth:
             fig.add_vline(x=100 * m["share_within_50m"], line=dict(color=ui.CRITICAL, width=2.5),
                           annotation_text=f"observed {100 * m['share_within_50m']:.1f}%")
             fig.update_layout(title=f"Same-depth repeats vs 1,000 permutations (p = {m['perm_p']:.3f})",
-                              xaxis_title="% of consecutive pairs within 50 m", yaxis_title="permutations",
+                              xaxis_title="consecutive breaks within 50 m (%)", yaxis_title="number of random runs",
                               showlegend=False)
             ui.show(ui.style(fig, 320))
             ui.explain("Grey = how often two breaks land within 50 m by chance (random pairs from the same area). "
@@ -170,7 +215,7 @@ with tab_shock:
         st.markdown(f"**Question.** {v.get('question', '')}  \n**Expected direction (stated before running).** "
                     f"{v.get('expected', '')}")
         if "cc_or" in v:
-            rows = [("Shock index, before vs normal times (OR per SD)", v["cc_or"], v["cc_or_lo"], v["cc_or_hi"])]
+            rows = [("Shock index, before failure vs normal times (OR per SD)", v["cc_or"], v["cc_or_lo"], v["cc_or_hi"])]
             if "cox_shock_hr" in v:
                 rows.append(("Shock index in the Cox model (HR per SD)", v["cox_shock_hr"], v["cox_shock_lo"], v["cox_shock_hi"]))
             ui.show(forest(rows, "Does volatile operation come before rod failures?", xlabel="odds / hazard ratio (log scale)"))
@@ -186,15 +231,17 @@ with tab_shock:
                 fig.add_vline(x=cc["diff"].mean(), line=dict(color=ui.CRITICAL, width=2),
                               annotation_text=f"mean {cc['diff'].mean():+.3f}")
                 fig.update_layout(title="Hazard window minus the same well's control windows (shock index)",
-                                  xaxis_title="difference in shock index (z)", yaxis_title="failures", showlegend=False)
+                                  xaxis_title="difference in shock index (standard deviations)",
+                                  yaxis_title="number of failures", showlegend=False)
                 ui.show(ui.style(fig, 300))
         if perm is not None and len(perm):
             with r:
                 fig = go.Figure(go.Histogram(x=perm["mean_diff"], nbinsx=40, marker_color=ui.GRAY))
                 fig.add_vline(x=v.get("cc_mean_diff", 0), line=dict(color=ui.CRITICAL, width=2.5),
                               annotation_text="observed")
-                fig.update_layout(title="Observed vs sign-flip permutation null", xaxis_title="mean difference",
-                                  yaxis_title="permutations", showlegend=False)
+                fig.update_layout(title="Observed difference against random sign flips (what chance produces)",
+                                  xaxis_title="mean difference in shock index (standard deviations)",
+                                  yaxis_title="number of random runs", showlegend=False)
                 ui.show(ui.style(fig, 300))
         st.caption(v.get("coverage", ""))
 
