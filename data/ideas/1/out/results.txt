@@ -1,0 +1,106 @@
+
+### Rod job rows -> deduplicated events
+8658 job rows -> 7972 events (355 replacements, 7617 repairs), wells=1002
+
+### Rod repairs per producing-year in the 365 d after the event, by prior-365d repair count and action (events 2022-01-01 to 2025-10-27 with full 365 d window, >=90 producing days)
+  prior_bin  is_replace     n  repairs  prod_yrs   rate     lo     hi
+0         0           0   931     1790   918.797  1.948  1.858  2.038
+1         0           1    35       36    33.699  1.068  0.719  1.417
+2         1           0   881     2248   870.052  2.584  2.477  2.691
+3         1           1    27       24    26.321  0.912  0.547  1.277
+4         2           0   810     2309   800.063  2.886  2.768  3.004
+5         2           1    34       76    33.721  2.254  1.747  2.761
+6       3-4           0  1170     3965  1156.907  3.427  3.321  3.534
+7       3-4           1    63      118    61.893  1.907  1.563  2.251
+8        5+           0  1420     6687  1403.564  4.764  4.650  4.878
+9        5+           1    71      193    70.416  2.741  2.354  3.128
+
+### Cox PH: hazard of next rod repair (n=6909, events=5735, stratified by area x year, events 2022+, follow-up capped 730 d)
+                HR   HR_lo   HR_hi       p
+is_replace  0.4854  0.4218  0.5585  0.0000
+log_prior   1.4106  1.3543  1.4693  0.0000
+rpm100      0.9681  0.9355  1.0019  0.0638
+log_liq     1.1065  1.0744  1.1396  0.0000
+
+### Cox PH chronic wells only (prior365 >= 2; n=4608, replacements=257)
+                HR   HR_lo   HR_hi       p
+is_replace  0.4946  0.4238  0.5772  0.0000
+log_prior   1.4967  1.3867  1.6155  0.0000
+rpm100      0.9497  0.9122  0.9887  0.0120
+log_liq     1.0691  1.0318  1.1079  0.0002
+
+### Cost inputs (all events 2021-2026)
+                                      0
+median_job_cost_repair_CAD      3734.20
+median_job_cost_replace_CAD    24783.75
+mean_cost_repair_CAD            7159.72
+mean_cost_replace_CAD          22554.74
+mean_lost_oil_per_repair_m3       11.72
+median_lost_oil_per_repair_m3      7.33
+share_repair_cost_zero             0.22
+oil_CAD_m3                       438.46
+
+### Unit economics used
+repair_job_cost_mean_CAD (cost>0, 2023+)     8672.0
+replace_job_cost_mean_CAD (cost>0)          22683.0
+lost_oil_value_per_repair_CAD                5140.0
+all_in_cost_per_rod_failure_CAD             13812.0
+incremental_cost_replace_vs_repair_CAD      14010.0
+
+### Next-365 rod repair rate for chronic events (prior >= 3)
+after_repair_per_yr     4.160
+after_replace_per_yr    2.351
+raw_reduction           0.435
+cox_HR_chronic          0.495
+
+### Break-even failure rate for replacement (failures/yr), 2-yr horizon
+1.00
+
+### Program: chronic wells (>=3 rod repairs in last 365 d, no replacement in last 365 d)
+wells                                         145.0
+repairs_last365                               678.0
+all_in_cost_last365_CAD                   8971123.1
+replacement_capex_incremental_CAD         2031509.5
+avoided_failures_2y                           685.3
+net_value_2y_CAD                          7434295.2
+net_value_2y_CAD_if_raw_rate_reduction    6115408.8
+net_value_2y_CAD_if_HR_upper_CI           5887668.5
+wells_with_positive_value                     145.0
+top_cause_corrosion_wells                      50.0
+top_cause_fatigue_wells                        74.0
+
+### Sensitivity (145 program wells)
+                                              scenario    HR  failure_cost_CAD  incremental_cost_CAD  horizon_yr  breakeven_failures_per_yr  program_net_CAD  wells_positive
+                                               central 0.495         13812.000             14010.411         2.0                      1.004      7434295.175             145
+                                    HR at upper 95% CI 0.577         13812.000             14010.411         2.0                      1.200      5887668.508             145
+                           lost oil = median per event 0.495         11886.234             14010.411         2.0                      1.166      6114506.402             145
+                      lost oil ignored (job cost only) 0.495          8672.117             14010.411         2.0                      1.598      3911768.749             145
+                                        oil price -30% 0.495         12270.035             14010.411         2.0                      1.130      6377537.247             145
+                           incremental replace cost x2 0.495         13812.000             28020.821         2.0                      2.007      5402785.633             145
+                                        1-year horizon 0.495         13812.000             14010.411         1.0                      2.007      2701392.817             145
+worst combo: HR upper CI, job cost only, cost x2, 1 yr 0.577          8672.117             28020.821         1.0                      7.642     -1576918.831              14
+
+### Top 15 program wells
+                  uwi    area  repairs_last365  all_in_cost_last365_CAD  top_cause  corrosion_share  net_value_2y_CAD
+304  109101004225W300  Winter               17                 130879.0  Corrosion              0.0          223333.0
+242  104151004225W300  Winter               14                  96331.0    Fatigue              0.0          181449.0
+135  102101004225W300  Winter               12                  84552.0    Fatigue              0.0          153526.0
+217  104011604225W300  Winter               11                  75410.0    Fatigue              0.0          139565.0
+307  110162104225W300  Winter                9                  67621.0  Corrosion              1.0          111642.0
+28   101041104225W300  Winter                9                  43886.0    Fatigue              0.0          111642.0
+30   101042204225W300  Winter                9                  58624.0  Corrosion              1.0          111642.0
+96   102011604225W300  Winter                9                  65402.0    Fatigue              0.0          111642.0
+57   101101004225W300  Winter                8                  50368.0    Fatigue              0.0           97681.0
+145  102122204225W300  Winter                8                  76988.0  Corrosion              1.0           97681.0
+240  104143404125W300  Winter                8                 322445.0    Fatigue              0.0           97681.0
+484  19G092704225W300  Winter                8                  47917.0  Corrosion              0.0           97681.0
+100  102013204225W300  Winter                8                  52184.0    Fatigue              0.0           97681.0
+70   101121104225W300  Winter                8                  50775.0  Corrosion              1.0           97681.0
+118  102052704225W300  Winter                7                  47697.0  Corrosion              1.0           83719.0
+
+### All-in downhole failure cost concentration 2021-2026 (repair jobs + lost oil @ field-gate price)
+wells               1208.000
+total_allin_MCAD     250.130
+top10pct_share         0.302
+top20pct_share         0.483
+top10pct_wells       120.000

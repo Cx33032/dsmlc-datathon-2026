@@ -1,0 +1,83 @@
+
+### Split sizes and base rates
+        rows  wells  y_job_rate  y_flog_rate
+train  79432   1066      0.1184          NaN
+valid  40239   1058      0.1192          NaN
+test   54532   1083      0.1184       0.1185
+
+### Trees chosen by early stopping
+full=105, sensors-only=142
+
+### Metrics (precision/recall @K = top K wells per weekly snapshot)
+split                                model  label  roc_auc  pr_auc  base_rate  prec_at50_wk  recall_at50_wk  prec_at100_wk  recall_at100_wk
+valid B1 history rule (repairs last 365 d)  y_job   0.6831  0.2285     0.1192        0.3058          0.1530         0.2756           0.2759
+valid            B2 logistic, history only  y_job   0.6889  0.2317     0.1192        0.3108          0.1555         0.2800           0.2802
+valid         LGBM sensors+production only  y_job   0.7117  0.2276     0.1192        0.2779          0.1391         0.2650           0.2652
+valid          LGBM full (history+sensors)  y_job   0.7250  0.2500     0.1192        0.3296          0.1649         0.2842           0.2844
+ test B1 history rule (repairs last 365 d)  y_job   0.7097  0.2586     0.1184        0.3342          0.1785         0.2799           0.2990
+ test B1 history rule (repairs last 365 d) y_flog   0.7159  0.2631     0.1185        0.3386          0.1808         0.2857           0.3051
+ test            B2 logistic, history only  y_job   0.7135  0.2624     0.1184        0.3319          0.1773         0.2867           0.3062
+ test            B2 logistic, history only y_flog   0.7199  0.2690     0.1185        0.3391          0.1811         0.2933           0.3133
+ test         LGBM sensors+production only  y_job   0.7478  0.2924     0.1184        0.3925          0.2096         0.3117           0.3330
+ test         LGBM sensors+production only y_flog   0.7568  0.2974     0.1185        0.3936          0.2102         0.3170           0.3385
+ test          LGBM full (history+sensors)  y_job   0.7549  0.2990     0.1184        0.3835          0.2048         0.3226           0.3446
+ test          LGBM full (history+sensors) y_flog   0.7640  0.3068     0.1185        0.3870          0.2067         0.3286           0.3509
+
+### Lead time of top-50 hits on test (days from flag to failure job)
+count    1323.0
+mean       15.0
+std         8.2
+min         1.0
+25%         8.0
+50%        14.0
+75%        22.0
+max        30.0
+
+### Weekly list size context
+median wells scored per week on test = 825
+
+### Feature importance (share of gain), full model
+n_fail_365         0.1850
+n_fail_730         0.1805
+area               0.1044
+well_age_yrs       0.0616
+rpm7               0.0473
+days_since_fail    0.0470
+dh_days365         0.0311
+eff7               0.0267
+liq7               0.0246
+eff30              0.0232
+liq30              0.0227
+liq90              0.0204
+r_eff_7_90         0.0195
+tq_per_rpm         0.0184
+tq7                0.0164
+d_rpm_7_90         0.0137
+wc30               0.0131
+vol_eff7           0.0131
+tbg7               0.0120
+oil90              0.0118
+
+### Business inputs (test window, top-50 weekly list)
+test_weeks                                                69.000
+true_positive_well_weeks_per_week_at50                    19.174
+distinct_failure_events_with_a_snapshot_in_prior_30d    2218.000
+distinct_failure_events_flagged_at_least_once            581.000
+event_recall_at50                                          0.262
+median_days_first_flag_to_failure                         21.000
+flagged_events_per_year                                  439.371
+wells_with_flagged_event                                 169.000
+
+### Decile table (test)
+       pred  obs_job  obs_flog
+dec                           
+1    0.0181   0.0073    0.0048
+2    0.0453   0.0249    0.0242
+3    0.0561   0.0475    0.0411
+4    0.0676   0.0591    0.0583
+5    0.0810   0.0825    0.0759
+6    0.0988   0.1031    0.1058
+7    0.1229   0.1350    0.1315
+8    0.1553   0.1537    0.1548
+9    0.2027   0.2289    0.2415
+10   0.3077   0.3425    0.3467

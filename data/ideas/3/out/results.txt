@@ -1,0 +1,110 @@
+
+### Lost oil m3/yr (annualised) by bucket and year, Producing rows
+bucket  Development (drill/frac)  Downhole failure  Facility / battery  Other / unmapped legacy  Pipeline / flowline   Power  Scheduled / turnaround  Surface equipment  Uneconomic / LTSI (excluded)
+y                                                                                                                                                                                                    
+2021                      2222.0           20473.0              3008.0                  12605.0                342.0   437.0                   306.0             1724.0                       28412.0
+2022                      7095.0           35443.0             10485.0                    238.0               1380.0  2727.0                    59.0             5423.0                       20631.0
+2023                      5731.0           37450.0             26295.0                    398.0               1195.0  5063.0                  1361.0             5623.0                       18803.0
+2024                      6636.0           47237.0             12871.0                    545.0               2266.0  3024.0                 10339.0             5800.0                       19355.0
+2025                      5542.0           44476.0             15270.0                   1134.0               1442.0  1924.0                  6274.0             6479.0                       32306.0
+2026                      4373.0           40589.0             14925.0                   1114.0                513.0  4910.0                  7692.0             5503.0                       45006.0
+
+### Totals 2021-2026 by bucket (5.82 yr span), valued at 438 CAD/m3
+                         bucket      lost        hrs  n_days  wells  lost_m3_per_yr  CAD_per_yr
+0              Downhole failure  218420.0  2519635.0  115119   1255         37525.0  16452982.0
+1  Uneconomic / LTSI (excluded)  156445.0  6222005.0  259387    518         26877.0  11784557.0
+2            Facility / battery   80177.0   965489.0   55298   1267         13775.0   6039538.0
+3      Development (drill/frac)   30816.0   313089.0   13796    536          5294.0   2321313.0
+4             Surface equipment   29566.0   292231.0   18100   1205          5080.0   2227144.0
+5        Scheduled / turnaround   24672.0   137472.0    7714   1084          4239.0   1858476.0
+6                         Power   17206.0    87664.0   20734   1212          2956.0   1296087.0
+7       Other / unmapped legacy   15826.0   908805.0   46747   1044          2719.0   1192122.0
+8           Pipeline / flowline    7048.0    79472.0    4557    659          1211.0    530927.0
+
+### Recoverable (non-uneconomic) loss
+m3_per_yr                     72798.0
+CAD_per_yr                 31918588.0
+non_downhole_m3_per_yr        35273.0
+non_downhole_CAD_per_yr    15465607.0
+
+### Unmapped downtime_code_2 values (bucket = Other)
+             c2      n    lost
+0       UNPLNDW   1546  3698.0
+1            TA    770  3448.0
+2         CODE3    991  2118.0
+3   Environment   2718  1340.0
+4       ENGDOWN    770  1192.0
+5           NaN  35385  1143.0
+6        CODE13    696  1048.0
+7       UNPLNDG    978   814.0
+8     Injection    620   563.0
+9    Regulatory   1354   153.0
+10         POLY     80   112.0
+11     Non - Op    780   106.0
+12         LCRB     59    90.0
+
+### Facility Pareto, non-downhole controllable loss (2021-2026)
+                               fac       lost  wells  lost_capacity  share    cum
+0               12-32 BTY Facility  68283.153    199      22982.209  0.430  0.430
+1   Cactus Lake 16-27-035-28W3 BTY  25443.195    490        375.601  0.160  0.591
+2           14-21-034-20W3 BATTERY  17499.605    156        850.163  0.110  0.701
+3           09-14-037-01W4 BATTERY  16636.410     85       1449.447  0.105  0.806
+4          WASCANA COURT UNIT 6-25   8069.868     99         84.888  0.051  0.857
+5           07-18-037-28W3 BATTERY   7409.833     74         41.016  0.047  0.903
+6           12-36-034-20W3 BATTERY   5877.784     42         90.869  0.037  0.940
+7           14-32-036-01W4 BATTERY   1414.852     16            NaN  0.009  0.949
+8   PLOVER LAKE EOR 10-05-035-26W3    828.356     29          0.149  0.005  0.955
+9        100/03-35-058-17W4/00 SWB    714.114      1            NaN  0.005  0.959
+10          16-19-036-28W3 BATTERY    540.267     10        281.603  0.003  0.962
+11          01-24-045-04W4 BATTERY    535.493      9         38.645  0.003  0.966
+
+### Facilities needed for 50% / 80% of that loss
+2 / 4 of 140
+
+### 12-32 BTY 'Facility - Limited Capacity' lost oil by year (m3)
+      y    lost
+0  2022    78.0
+1  2023  3985.0
+2  2024  4074.0
+3  2025  8977.0
+4  2026  5868.0
+
+### 12-32 BTY context
+oil_2025_2026_m3              277217.2580
+capacity_loss_2025_2026_m3     14845.1969
+loss_pct_of_production             0.0536
+
+### lost_oil_m3 vs implied (hours_down/24 x trailing 8-37 d up-day oil rate), recoverable codes
+                          0
+n                161482.000
+med_ratio             0.978
+p10                   0.594
+p90                   1.307
+share_zero_lost       0.028
+corr                  0.707
+sum_lost         352042.158
+sum_implied      359301.278
+
+### Share of down-days with lost_oil_m3 = 0 although the well had a positive trailing rate
+                    c2      n  share_zero  implied_when_any
+0   Downhole Equipment  43341       0.051          120825.0
+1             Facility  30517       0.007           53271.0
+2             Downhole  20932       0.041           60291.0
+3    Surface Equipment  14377       0.029           25466.0
+4  Power Source/Supply  14308       0.004           10985.0
+5           Uneconomic   8450       0.063            7663.0
+6          Development   7333       0.027           28337.0
+7            Scheduled   6306       0.011           18498.0
+
+### Downtime episodes by bucket (consecutive down-days, same bucket)
+                              episodes  median_days  p90_days  mean_lost  share_loss_from_eps_over_7d
+bucket                                                                                               
+Development (drill/frac)           962          5.0      25.0      32.03                         0.81
+Downhole failure                 12153          3.0      13.0      17.97                         0.55
+Facility / battery               18323          1.0       3.0       4.38                         0.51
+Other / unmapped legacy           8960          1.0       4.0       4.55                         0.37
+Pipeline / flowline               1716          1.0       4.0       4.11                         0.43
+Power                            18649          1.0       1.0       0.92                         0.01
+Scheduled / turnaround            2262          2.0       6.0      10.91                         0.29
+Surface equipment                 8493          1.0       3.0       3.48                         0.28
+Uneconomic / LTSI (excluded)       701        275.0     764.0     223.17                         1.00

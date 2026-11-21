@@ -1,0 +1,161 @@
+
+### Price assumption
+WCS 57.25 USD/bbl = 82.01 CAD/bbl = 516 CAD/m3; field-gate after 15% haircut = 438 CAD/m3
+
+### S1 lost oil m3/yr on Producing rows by downtime_code_2
+                    grp  lost_m3_per_yr
+0            Uneconomic         24828.0
+1    Downhole Equipment         24683.0
+2              Facility         13245.0
+3              Downhole         10503.0
+4           Development          5128.0
+5     Surface Equipment          4915.0
+6             Scheduled          4176.0
+7   Power Source/Supply          1956.0
+8              RODSPART          1418.0
+9       Sask Power/Grid           964.0
+10    Long Term Shut-In           914.0
+11             Pipeline           881.0
+
+### S1 totals (5.82 yr window)
+   recoverable_m3_yr  oil_m3_yr
+0            74659.0  1343170.0
+
+### S2 event study: mean z-score / ratio vs each event's own day -90..-31 baseline (Rods/Pump/Tubing failures)
+          win  events  z_oil  z_eff  z_tq  z_cur  oil_ratio  eff_ratio  tq_ratio
+0  a:-30..-15    2779  -0.05  -0.18 -0.34  -0.02      1.079      0.995     1.012
+1   b:-14..-8    2779  -0.32  -0.23 -0.15   0.27      1.035      0.993     1.022
+2    c:-7..-1    2779  -1.63  -0.21  0.00   0.42      0.766      0.996     1.021
+3      d:0..3    2779  -1.49   0.67 -0.82   0.31      0.835      1.080     1.017
+
+### S3 rod/pump/tubing repair job cost concentration (Rod Truck + Workover, 2021-2026)
+   wells  total_MCAD  top10pct_share  top20pct_share  med_jobs  max_jobs
+0   1236       172.4            28.4            46.7       7.0        69
+
+### S3 failures per well in the complete failure-log window
+    failures_in_17mo  wells  failures
+0                  1    278     278.0
+1                  2    162     324.0
+2                  3     92     276.0
+3                  4     58     232.0
+4                  5     56     280.0
+5                  6     49     294.0
+6                  7     33     231.0
+7                  8     28     224.0
+8                  9     20     180.0
+9                 10      8      80.0
+10                11      7      77.0
+11                12      3      36.0
+12                13      4      52.0
+13                14      4      56.0
+14                15      1      15.0
+15                16      3      48.0
+16                17      3      51.0
+17                19      1      19.0
+18                20      1      20.0
+19                21      1      21.0
+20                22      1      22.0
+21                25      1      25.0
+
+### S4 oil rate (m3/d) 8-67 d before vs 8-67 d after job, by job_type (n>=60)
+   job_category                             job_type     n  med_cost  med_pre  med_post  med_delta_m3d  mean_delta_m3d
+0     Rod Truck                     Corod Rod Repair  2860    6033.0     3.42      3.16         -0.184          -0.383
+1     Rod Truck                           Rod Repair  2710       0.0     3.10      2.99         -0.079          -0.148
+2     Rod Truck                     Stick Rod Repair  2058    2468.0     3.09      2.93         -0.174          -0.409
+3      Workover              Pump Repair/Replacement  1230   30819.0     2.39      2.63          0.134           0.389
+4      Workover                        Tubing Repair  1002   32977.0     3.01      2.99          0.032           0.033
+5     Rod Truck                    Polish Rod Repair   853    1362.0     3.20      3.21         -0.137          -0.263
+6      Workover                    Rod Break - Corod   354   43449.0     3.86      3.39         -0.081          -0.327
+7      Workover                      PCP Replacement   351   29713.0     2.30      2.47          0.186           0.322
+8      Workover                          Pump Repair   294   24061.0     2.07      2.50          0.303           0.375
+9     Rod Truck  Corod Rod  Replacement - New String   282   25193.0     3.28      3.32         -0.034          -0.160
+10     Workover                          PCP Upgrade   248   30073.0     5.15      5.66          0.445           0.359
+11     Workover                           Rod Repair   248   33471.0     3.10      3.22         -0.030          -0.155
+12    Rod Truck                                Other   209    2189.0     2.47      2.14         -0.076          -0.328
+13     Workover                             Cleanout   177   38207.0     2.01      1.82         -0.055           0.228
+14    Rod Truck                             Coil Job   144    8169.0     2.13      1.95          0.033           0.464
+15    Rod Truck   Stick Rod Replacement - New String    67    4713.0     2.92      2.93          0.049          -0.082
+16    Rod Truck                         Rotor Change    62    4448.0     2.78      2.98          0.066          -0.088
+
+### S5 rod failures per producing well-year by RPM band (Jun 2025+)
+     rpm_bin  well_days  rod_failures  failures_per_well_yr
+0     a <100      54508          54.0                 0.362
+1  b 100-199     182286         340.0                 0.681
+2  c 200-299      91894         323.0                 1.283
+3  d 300-399      51726         276.0                 1.948
+4     e 400+      59314         447.0                 2.751
+5     z null     100579          13.0                 0.047
+
+### S5 rod+pump failures per producing well-year by pump-efficiency band (same-day eff, Jun 2025+)
+     eff_bin  well_days  failures  failures_per_well_yr
+0     a <0.3      22033      45.0                 0.745
+1  b 0.3-0.5      55407     105.0                 0.692
+2  c 0.5-0.7     124688     417.0                 1.221
+3  d 0.7-0.9     160478     614.0                 1.397
+4  e 0.9-1.1      60629     255.0                 1.535
+5    f >=1.1      13878      60.0                 1.578
+6     z null     103194      89.0                 0.315
+
+### S6 days from failure to back-on-production (hours_down=0 and oil>0), Producing wells, Jun 2025 - Aug 2026
+  failure_type     n  med_days_down  p90_days_down  mean_days_down  med_lost_m3  tot_lost_m3  corr_days_vs_pre_oil
+0         Rods  1907            1.0            4.0             2.6         2.13      15367.0                -0.033
+1         Pump   326            2.0            7.0             4.2         3.19       2309.0                -0.136
+2       Tubing   190            2.0            6.0             3.2         4.56       1876.0                -0.007
+
+### S7 currently suspended oil wells and their last-90-day producing rate
+   suspended_oil_wells_now  with_prod_history_2021p  med_last90_oil_m3d  n_ge_1m3d  n_ge_2m3d  med_watercut
+0                      309                      154                0.64         52         21         0.991
+
+### S7 historical Reactivation jobs and post-job oil rate
+   n_jobs  med_cost  mean_oil_post_30_180d
+0      80   44911.0                   1.41
+
+### S8 polymer injectors and producers within 500 m (surface location)
+   polymer_injectors  producers_within_500m  med_producers_per_injector_500m
+0                386                    619                             10.0
+
+### S8 surface-location sharing (pads / horizontal wells: surface != bottomhole)
+   distinct_surface_locs  wells
+0                   2840   2905
+
+### S5c within-well RPM test: wells seen in >=2 RPM bands; observed/expected uses each well's own average failure rate
+   rpm_band  n_days  fails  rate_per_well_yr  observed_over_expected_from_same_wells  med_liquid_m3d  med_disp
+0       0.0   30443   33.0              0.40                                    0.75             8.0      15.0
+1     100.0  123016  268.0              0.80                                    0.92            31.8      33.0
+2     200.0   84805  307.0              1.32                                    1.06            96.7      64.0
+3     300.0   50686  274.0              1.97                                    1.10           223.1     100.0
+4     400.0   45758  279.0              2.23                                    0.97           305.0     105.0
+
+### S5c correlation of RPM with liquid rate and displacement (Producing, Jun 2025+)
+   corr_rpm_liquid  corr_rpm_disp
+0            0.563          0.396
+
+### S9 repair-job cost linked to each failure (jobs within -3..+14 d, Jun 2025+)
+      failure_type  n_failures  med_cost  mean_cost  total_MCAD
+0             Rods        2158    6331.0    13689.0       29.54
+1             Pump         358   34076.0    40578.0       14.53
+2           Tubing         240   39851.0    45811.0       10.99
+3              NaN           7    6540.0    20130.0        0.14
+4  Surface Failure           4   12698.0    15602.0        0.06
+
+### S9 share of repair jobs (start >= 2025-06-15) with a failure record within -14..+3 d
+   job_category                             job_type     n  pct_with_failure
+0     Rod Truck                     Corod Rod Repair  1172              88.9
+1     Rod Truck                     Stick Rod Repair   796              96.7
+2      Workover              Pump Repair/Replacement   422              72.0
+3      Workover                        Tubing Repair   258              78.7
+4     Rod Truck                    Polish Rod Repair   189              66.1
+5     Rod Truck  Corod Rod  Replacement - New String   135              93.3
+6      Workover                    Rod Break - Corod   115              84.3
+7      Workover                          PCP Upgrade    93              51.6
+8     Rod Truck                                Other    91              37.4
+9      Workover                        Packer Repair    59              59.3
+10     Workover                             Cleanout    55              63.6
+11    Rod Truck                             Coil Job    44              40.9
+12    Rod Truck   Stick Rod Replacement - New String    30              90.0
+
+### S11 On facility-days with 'Facility - Limited Capacity', trailing (8-37 d) oil and water cut of curtailed vs other wells
+                 grp  n_well_days  med_oil30  pooled_oil_cut
+0          curtailed        24174       0.00          0.0063
+1   down, other code       113502       0.00          0.0156
+2  running (no code)       323961       2.65          0.0221

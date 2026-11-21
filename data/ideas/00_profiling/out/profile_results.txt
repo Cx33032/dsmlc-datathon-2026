@@ -1,0 +1,725 @@
+
+### Row counts / distinct wells
+          f        n  wells         mn         mx
+0     daily  5075590   2905 2021-01-01 2026-10-27
+1      jobs    15610   1903 2021-01-01 2026-10-27
+2  failures     2873    825 2021-12-14 2026-10-26
+
+### Duplicate (uwi, production_date) keys in daily
+   dup_keys
+0        29
+
+### daily: null % per column
+                                 null_pct
+uwi                                  0.00
+formatted_uwi                        0.34
+well_name                            0.00
+field_operating_area                 0.00
+province                             1.25
+surface_latitude                     0.34
+surface_longitude                    0.34
+on_production_date                   8.90
+facility_name                       17.18
+well_daily_status                    1.04
+primary_fluid_type                   1.37
+flow_direction                       1.04
+production_date                      0.00
+hours_down                           0.00
+hours_on_prod                        0.00
+lost_oil_m3                         67.55
+downtime_code_1                     64.28
+downtime_code_2                     64.65
+downtime_code_3                     64.65
+tubing_pressure_kpa                 47.43
+casing_pressure_kpa                 38.78
+injection_pressure_kpa              80.31
+well_status                          5.22
+oil_produced_m3                     23.06
+gas_produced_e3m3                   23.12
+injection_volume_m3                 72.80
+injected_water_m3                   89.40
+injected_polymer_m3                 86.72
+pump_efficiency_pct                 66.79
+water_produced_m3                   23.14
+hydraulic_pressure_psi              93.64
+choke_open_pct                      94.60
+pcp_pump_name                       51.42
+pcp_pump_make                       53.90
+pcp_pump_model                      53.90
+pcp_pump_displacement_m3d100rpm     51.65
+pcp_pump_rpm                        52.51
+pcp_pump_comment                    95.32
+pcp_pump_electric_current_a         82.19
+pcp_pump_rod_torque_ftlb            74.03
+pcp_pump_volume_throughput_m3d      56.07
+
+### jobs: null % per column
+                               null_pct
+uwi                                0.00
+formatted_uwi                      0.00
+well_name                          0.00
+field_operating_area               0.00
+job_category                       0.00
+job_type                           0.00
+job_subtype                       16.76
+start_date                         0.00
+end_date                           3.18
+job_duration_days                  1.18
+job_status_1                      99.98
+job_status_2                      99.99
+objective                          6.15
+summary                           12.87
+actual_final_job_cost             99.99
+afe_cost_total                    95.04
+afe_and_supp_cost_total           95.04
+field_est_total                    0.00
+duration_time_log_spud_td_hrs     97.46
+
+### failures: null % per column
+                         null_pct
+uwi                          0.00
+formatted_uwi                0.00
+well_name                    0.00
+field_operating_area         0.00
+failure_start_date           0.00
+failure_end_date            99.97
+cause                        5.43
+cause_detail                65.72
+cause_category             100.00
+action_taken                99.97
+failure_detail               0.66
+failure_description         99.27
+failure_system              99.90
+failure_system_category    100.00
+failure_comments            44.34
+failure_type_category      100.00
+cause_comments              99.97
+failure_type                 0.31
+
+### daily: numeric ranges, zeros, negatives, sentinels
+                                       n         mn    p01       p50       p99          mx  n_neg   n_zero  n_ge_99999  n_eq_999999
+col                                                                                                                                
+hours_down                       5075590      0.000  0.000     0.000    24.000      24.000      0  3234971           0            0
+hours_on_prod                    5075590      0.000  0.000    24.000    24.000      24.000      0  1738881           0            0
+lost_oil_m3                      1647077      0.000  0.000     0.000     5.657     397.157      0  1236818           0            0
+tubing_pressure_kpa              2668253    -13.790  0.000  1000.000  8000.000  999999.000   3033   424418          10            7
+casing_pressure_kpa              3107453  -3446.350  0.000    70.000  4890.000   85873.500  27214  1043228           0            0
+injection_pressure_kpa            999320  -3447.500  0.000  6600.000  8600.000   88100.000    853   115096           0            0
+oil_produced_m3                  3905245   -163.916  0.000     0.000    18.854     175.806   3720  2012606           0            0
+gas_produced_e3m3                3902264     -1.170  0.000     0.000     1.896      79.093    107  2056993           0            0
+injection_volume_m3              1380581 -39786.000  0.000    50.000  2005.268   11291.500    220   337279           0            0
+injected_water_m3                 538070 -39786.000  0.000   164.000  3211.000   11291.500     71   134578           0            0
+injected_polymer_m3               674196   -136.620  0.000    48.000   247.000     999.000    144    36571           0            0
+pump_efficiency_pct              1685654    -17.500  0.094     0.691     1.587      91.429   2001     7202           0            0
+water_produced_m3                3901334    -96.000  0.000     0.000   548.292    3420.425  10284  1971595           0            0
+hydraulic_pressure_psi            322863      0.000  0.000  1000.000  3000.000  105460.000      0     9502           1            0
+choke_open_pct                    274089      0.000  5.000   100.000   100.000    1000.000      0      927           0            0
+pcp_pump_displacement_m3d100rpm  2453845      0.583  5.000    56.000   175.000    1068.000      0        0           0            0
+pcp_pump_rpm                     2410409      0.000  0.000   200.000   453.000   44180.000      0    41830           0            0
+pcp_pump_electric_current_a       904077      0.000  0.000    53.000   185.000   84860.000      0    14146           0            0
+pcp_pump_rod_torque_ftlb         1317931      0.000  0.000   625.000  5192.438  331460.430      0    28163         516            0
+pcp_pump_volume_throughput_m3d   2229665      0.000  1.070    94.520   720.000   46830.800      0    20570           0            0
+
+### tubing_pressure_kpa: most common values >= 10000 kPa
+             v     n
+0   22598.3000  1138
+1   14000.0000    85
+2   11011.0000    41
+3   19305.3196    36
+4   12300.0000    28
+5   19000.0000    17
+6   11900.0000    15
+7   14100.0000    12
+8  999999.0000     7
+9   11509.0000     5
+
+### casing_pressure_kpa: most common values >= 10000 kPa
+         v    n
+0  85873.5  819
+1  13550.0   23
+2  12501.0    9
+
+### _pct columns: share of non-null values > 1 (should be decimals 0-1)
+                   col        n  pct_gt1  pct_gt1_5  pct_eq0
+0  pump_efficiency_pct  1685654     6.83       1.19     0.43
+1       choke_open_pct   274089    99.66      99.66     0.34
+
+### pump_efficiency_pct consistency: eff vs (oil+water)/throughput and throughput vs disp*rpm/100
+         n  med_abs_thr_minus_rated  pct_thr_eq_rated  med_abs_eff_minus_liquid_over_thr  pct_eff_eq_liquid_over_thr
+0  1651069                      0.0              99.4                       5.362566e-11                        68.4
+
+### hours_down + hours_on_prod vs 24
+    tot        n
+0  24.0  5075590
+
+### lost_oil_m3 vs hours_down
+    down   lost  coded        n
+0  False   <NA>  False  2099078
+1   True   True   True   376520
+2   True  False   True   143218
+3   True   <NA>  False    16668
+4   True   <NA>   True     4725
+5   True   True  False      208
+6   True  False  False      113
+
+### well_daily_status distribution
+  well_daily_status        n    pct  wells
+0         Producing  2640530  52.02   1676
+1         Suspended  1211617  23.87    947
+2         Injecting  1146539  22.59    638
+3               NaN    52766   1.04   2505
+4         Abandoned    16614   0.33     24
+5            Issued     7108   0.14      4
+6              SOLD      275   0.01     11
+7          Drilling      141   0.00      4
+
+### well_daily_status vs well_status mismatch
+   n_mismatch        n
+0       39608  5075590
+
+### primary_fluid_type x flow_direction
+   primary_fluid_type flow_direction        n  wells
+0           Heavy Oil     production  3150025   1863
+1             Polymer      injection   673439    389
+2     Water Injection      injection   538070    294
+3                 Gas     production   354097    180
+4                 Oil     production   201540    127
+5        Water Source     production    54014     27
+6                 NaN            NaN    52766   2505
+7       Gas Injection      injection    18520      9
+8                 NaN     production    16782     43
+9     Steam Injection      injection     6375      3
+10           H2O Inj.      injection     6183     11
+11                Oil      injection     1303      1
+12    Water Injection     production     1034      1
+13            Polymer     production      757      2
+14         H2O Source     production      474      1
+15          Heavy Oil      injection      211      1
+
+### Oil reported on non-Producing days
+  well_daily_status  n_days_with_oil     oil_m3
+0         Producing          1888289  7833120.0
+1               NaN              557      539.0
+2         Suspended               72      617.0
+3         Injecting                1        7.0
+
+### downtime_code_2 (broad) distribution: days, hours, lost oil (Producing + Suspended)
+                                      downtime_code_2   n_days         hrs  lost_oil_m3  wells
+0                                          Uneconomic  1466681  35197496.0     162412.0   1135
+1                                  Downhole Equipment    95893   2139621.0     144108.0   1300
+2                                            Facility    59405   1055470.0      80282.0   1686
+3                                            Downhole    24602    526267.0      61136.0    805
+4                                         Development    29192    678906.0      29863.0    749
+5                                   Surface Equipment    19952    333753.0      28620.0   1477
+6                                           Scheduled    10537    194070.0      24311.0   1450
+7                                 Power Source/Supply    17148     95967.0      12125.0   1567
+8                                            RODSPART     3292     65670.0       8255.0    284
+9                                   Long Term Shut-In     6913    165594.0       6199.0     33
+10                                    Sask Power/Grid     6861     34091.0       5609.0   1312
+11                                           Pipeline     6294    126239.0       5128.0    665
+12                                            UNPLNDW     1710     22489.0       3698.0    586
+13                                                 TA      857     17793.0       3448.0    168
+14                                             LTSI:1     7530    180566.0       3210.0     23
+15                                                PUM     1992     45296.0       2925.0    148
+16                                                FFM     2448     53566.0       2275.0    258
+17                                              CODE3     1033     23772.0       2118.0     63
+18                                            UNECO10     3986     95602.0       2094.0     22
+19                                           Flowline     1485     26775.0       1904.0    376
+20                                               CAPC     2345     54724.0       1718.0     53
+21                                        Environment     2955     67720.0       1342.0    138
+22                                            ENGDOWN      770      9398.0       1192.0    237
+23                                             CODE13     1126     25907.0       1094.0     63
+24                                                ESD      859      7676.0       1022.0    386
+25                                                NaN    18750    412650.0        855.0     68
+26                                            UNPLNDG     1006     10473.0        814.0    474
+27                                             UNECO2     1038     24840.0        665.0      7
+28                                  Long Term Shut In     1249     29925.0        623.0      9
+29                                          Injection     2485     52198.0        563.0    314
+30                                           SI:DRILL      275      5860.0        550.0     36
+31                                               WHSB      304      4206.0        505.0    137
+32        Concurrent Operations - Drilling Operations      130      2996.0        345.0     11
+33                                              UNECO     1249     29762.0        262.0     15
+34                                               MNT1      281      3913.0        214.0    155
+35                                             ELFAIL      136      2304.0        210.0     52
+36                                         Regulatory     2772     66061.0        153.0     23
+37                                             UNECO4      129      3063.0        139.0      1
+38                          Unplanned Well - Downhole      171      3935.0        132.0     19
+39                                              NEWEQ       90      1237.0        124.0     70
+40               Unplanned Well - Facility Constraint      155      3260.0        118.0     24
+41       Planned Well - Surface Equipment Maintenance        6       116.0        113.0      4
+42                                               POLY      100      2234.0        112.0      6
+43                                           Non - Op     1488     35424.0        106.0     23
+44                                           WELLSTIM       46       897.0         98.0     12
+45                                               LCRB       59      1399.0         90.0      2
+46                     Unplanned Well - Surface Upset      192      4154.0         78.0     30
+47   Planned Plant Facility - Surf Equipt Maintenance       12       216.0         77.0      7
+48                          Surface Equipment Failure     1398     33196.0         68.0     31
+49          Concurrent Ops - Completions/Workover Ops       24       487.0         68.0      3
+50    Planned Pad/Multi-Well Fac - Surface Eqpt Maint       11       264.0         64.0      5
+51                            Planned Well - Workover       23       474.0         59.0      8
+52  Unplanned Pad/Multi-Well Facility - Surface Upset       25       413.0         56.0     14
+53                                                EQT       51       930.0         34.0     23
+54                             Uneconomic - Long Term       60      1406.0         34.0      6
+55                                                SEM       28       339.0         32.0     19
+56                                  Down Hole Failure      448     10309.0         26.0     31
+57                                                TIE       45       796.0         16.0     14
+58                                             UNECO3      702     16848.0         15.0      3
+59                                  Facility Downtime       21       210.0         14.0     21
+60                                             UNECO1     1998     47892.0         14.0     14
+61       Unplanned Pad/Multi-Well Facility - Pipeline      115      2686.0          7.0      5
+62    Concurrent Ops - Facility/Pipeline Construction       17       347.0          5.0      4
+63              Unplanned Plant Facility - Amine Skid        9        52.0          4.0      9
+64                                             UNECO8        3        72.0          3.0      2
+65                    Unplanned Well - Surface Access        2        42.0          3.0      1
+66         Planned Pad/Multi-Well Facility - Pipeline       13       127.0          2.0     11
+67               Unplanned Plant Facility - Generator        2        39.0          2.0      2
+68                                             UNECO5        9       152.0          2.0      4
+69              Unplanned Plant Facility - Compressor       15       205.0          1.0      7
+70                                          PLNDOTGSP        4        17.0          1.0      4
+71         Unplanned Plant Facility - Inlet Separator        1        12.0          0.0      1
+72                                             UNECO7        1        24.0          NaN      1
+
+### downtime_code_1 top 30 by lost oil
+                                    downtime_code_1   n_days  lost_oil_m3  wells
+0                    Uneconomic - Long Term Shut In  1466681     162412.0   1135
+1                         Downhole Equipment - Rods    40005      72080.0    892
+2                ALL - Downhole - Rodstring Failure    14169      40015.0    613
+3                       Facility - Limited Capacity    26034      29374.0    293
+4                         Downhole Equipment - Pump    19779      24205.0    664
+5               Downhole Equipment - Tubing Failure    17021      24097.0    426
+6                      ALL - Facility - Turn Around     7854      23237.0   1018
+7                           Scheduled - Turn Around     7179      18786.0   1404
+8           Development - Shut-In For Drilling/Frac    20411      17697.0    327
+9                                          Downhole     7443      14392.0    407
+10                Downhole Equipment - Well Torqued     6236      13613.0    308
+11         ALL - Downhole - Bottomhole Pump Failure     6005      10969.0    377
+12           Power Source/Supply - Unplanned - Grid    15802      10550.0   1553
+13                           Facility - Maintenance     2761       8825.0    651
+14                                   Facility - ESD     9143       6810.0   1118
+15         ALL - Development - Capacity Constraints     5127       6584.0    267
+16            Surface Equipment - Engine/Motor Down     4441       6398.0    537
+17                  ALL - Downhole - Tubing Failure     2980       6258.0    204
+18      ALL - Long Term Shut-In - Long Term Shut-In     6913       6199.0     33
+19      Surface Equipment - Wellhead Drive/Stuffing     3025       5418.0    563
+20  ALL - Sask Power/Grid - Unplanned Outage - Grid     6609       5380.0   1310
+21         Downhole Equipment - Service Rig on Hole     1692       4919.0    291
+22                 Downhole Equipment - Unspecified     8299       4839.0    190
+23                                         Facility     2087       4808.0    451
+24                   Surface Equipment - Electrical     2153       4671.0    377
+25                                  Sask Power/Grid     2720       4512.0    668
+26      ALL - Surface Equipment - Engine/Motor Down     2304       4353.0    435
+27                    ALL - Downhole - Well Torqued     1448       3893.0    162
+28  Pipeline - Flowline Failure/Repairs/Maintenance     4996       3841.0    531
+29        Scheduled - Well Optimization/Stimulation     1845       3774.0     73
+
+### Distinct downtime codes
+    c1  c2   c3
+0  137  72  128
+
+### Downtime code present while hours_down = 0
+   code_no_hours  hours_no_code
+0              0          27605
+
+### jobs: job_category distribution
+                                  job_category     n  wells  med_cost  total_cost_MCAD
+0                                    Rod Truck  9359   1097    2846.0            40.70
+1                                     Workover  4702   1480   31873.0           171.95
+2                                     Drilling   480    461  543412.0           252.73
+3                                   Completion   419    400   89451.0            39.60
+4                                      Abandon   310    204   17556.0            13.09
+5                                Re-completion   145    133   89745.0            12.68
+6                                        Other   111    104    6495.0             1.85
+7                           Initial Completion    25     25   80724.0             2.12
+8                                     Coil Job    16     15   13566.0             0.36
+9                              Surface Failure    10     10    5448.0             0.10
+10                                        Scvf     5      5       0.0             0.00
+11                        Pre Set Surface Hole     4      4   37074.0             0.17
+12                             Pre-set Surface     4      4   33446.0             0.13
+13                                 Stimulation     4      4   27238.0             0.12
+14                         Completion/workover     2      2   52163.0             0.10
+15                  177.8mm P110hc Geoconn Tbg     1      1  -41395.0            -0.04
+16             2-38.10mm Coil Tbg Plug Catcher     1      1     710.0             0.00
+17       4-52.4mm Csg Valves + Grafoil Packing     1      1    2082.0             0.00
+18                         Drilling - Origanal     1      1  191373.0             0.19
+19                                     Pre-set     1      1   34504.0             0.03
+20    4-2-1/16" New Valves + 3-1/8" New Valves     1      1    6210.0             0.01
+21             2-concentric Gas Lift Wellheads     1      1       0.0             0.00
+22              2-concentric Gas Lift Wellhead     1      1       0.0             0.00
+23                    Wellhead Torque Wrenches     1      1       0.0             0.00
+24                          Drilling-surrogate     1      1       0.0             0.00
+25                 2-kudu Drivehead Oryx Seals     1      1    6066.0             0.01
+26                                Recompletion     1      1   49539.0             0.05
+27  3-gas Lift Adaptor Wellhead For 66, 91, 92     1      1       0.0             0.00
+28                                     Testing     1      1  118020.0             0.12
+
+### jobs: top 25 job_type
+     job_category                             job_type     n  med_cost
+0       Rod Truck                     Corod Rod Repair  2876    6031.0
+1       Rod Truck                           Rod Repair  2744       0.0
+2       Rod Truck                     Stick Rod Repair  2076    2470.0
+3        Workover              Pump Repair/Replacement  1245   30773.0
+4        Workover                        Tubing Repair  1018   32926.0
+5       Rod Truck                    Polish Rod Repair   865    1362.0
+6        Drilling                  Drilling - original   425  563159.0
+7      Completion                   Initial Completion   404   89635.0
+8        Workover                    Rod Break - Corod   355   43375.0
+9        Workover                      PCP Replacement   354   29809.0
+10       Workover                          Pump Repair   302   24061.0
+11      Rod Truck  Corod Rod  Replacement - New String   288   25144.0
+12       Workover                          PCP Upgrade   253   30053.0
+13       Workover                           Rod Repair   251   33302.0
+14      Rod Truck                                Other   230    2268.0
+15       Workover                        Packer Repair   220   37896.0
+16       Workover                             Cleanout   196   38258.0
+17      Rod Truck                             Coil Job   150    8187.0
+18        Abandon                         Abandon Well   140   32644.0
+19        Abandon                          Cut and Cap    83    2679.0
+20          Other          Wellhead Maintenance/Repair    76    6149.0
+21       Workover                                Other    75   27586.0
+22  Re-completion                      SSSS Conversion    72   94563.0
+23       Workover                         Reactivation    72   41160.0
+24       Workover                           Suspension    69   17807.0
+
+### failures: failure_type x cause
+   failure_type                             cause     n
+0          Rods                           Fatigue  1074
+1          Rods                         Corrosion   719
+2          Rods              Load / Excess Stress   242
+3          Rods                           Erosion    87
+4          Pump                               NaN    78
+5          Pump                           Fatigue    73
+6        Tubing                           Fatigue    68
+7        Tubing                         Corrosion    50
+8        Tubing                               NaN    49
+9          Pump                           Unknown    32
+10         Pump                          Abrasion    32
+11       Tubing              Load / Excess Stress    27
+12         Rods                               NaN    25
+13         Pump  Normal or Expected Wear-and-Tear    24
+14         Pump               Reservoir or Fluids    24
+15         Pump                             Other    23
+16         Pump   Unexpected Reservoir Conditions    21
+17         Pump              Load / Excess Stress    19
+18         Pump  Normal or Expected Wear and Tear    18
+19         Rods                           Unknown    16
+20       Tubing                           Unknown    14
+21       Tubing                          Abrasion    12
+22         Pump                              Heat     9
+23         Rods                          Abrasion     8
+24       Tubing                             Other     8
+
+### failures: failure_type
+                     failure_type     n
+0                            Rods  2186
+1                            Pump   381
+2                          Tubing   260
+3                             NaN     9
+4                 Surface Failure     7
+5                          Casing     3
+6                          Broken     2
+7                             Rod     2
+8                             PCP     2
+9                          Packer     1
+10                 Hole in tubing     1
+11                 Packer  repair     1
+12                   Hole in csig     1
+13                     Parted rod     1
+14                         Sanded     1
+15                  Tubing Parted     1
+16                         packer     1
+17                  Broken insert     1
+18                           |Rod     1
+19                        ES- PCP     1
+20                         PACKER     1
+21            Hole in surface pup     1
+22                     Parted tbg     1
+23                         TUBING     1
+24                      Pared rod     1
+25            Parted tubing Broke     1
+26              Hole in tbg colar     1
+27                 Broken threads     1
+28  Parted/ backed off polish rod     1
+29         Hole in mandral packer     1
+
+### failures: failure_detail top 15
+                           failure_detail    n
+0        Rods Routine - Broken Corod body  746
+1   Rods Routine - Broken Sucker Rod Body  580
+2                 Rod - Broken Corod Body  169
+3                   Rods Routine  - Upset  143
+4             Rods Routine - Polished Rod  127
+5                        Burnt/Low Inflow  127
+6              Rods Routine  - Bottom Pin  119
+7                      Rods Routine - Box  117
+8                                  Parted   80
+9                                    Hole   74
+10          Backed Off -Broken Corod Body   74
+11                         Torn Elastomer   61
+12           Pump Change - Low Efficiency   51
+13                      Bent/Broken Rotor   42
+14                           Pump Upgrade   37
+
+### jobs: duration anomalies
+   neg_duration   min_dur  max_dur  end_before_start  null_end  dur_disagrees_with_dates  cost_le0  cost_gt1M    max_cost
+0            65 -111.5417    473.0                17       497                         0      2387         18  2261777.73
+
+### jobs: negative-duration rows
+                       job_category                             job_type start_date   end_date  job_duration_days  field_est_total
+0                          Workover              Pump Repair/Replacement 2024-02-07 2023-10-18          -111.5417         32445.77
+1                          Workover                      BHP Replacement 2021-09-08 2021-05-28          -102.9792         10225.80
+2                          Workover                      BHP Replacement 2021-04-11 2021-01-12           -88.7292         13321.90
+3                          Workover                      Wellhead Repair 2026-07-11        NaT           -66.7292          5335.60
+4                          Workover              Pump Repair/Replacement 2024-03-23 2024-01-23           -59.6667         49915.25
+5                          Workover                        Tubing Repair 2022-04-23 2022-03-11           -42.8958         55077.22
+6                          Workover                    Rod Break - Corod 2024-02-27 2024-01-22           -35.5833         26704.12
+7                         Rod Truck                           Rod Repair 2022-08-29 2022-08-22            -6.8750          1352.50
+8                         Rod Truck                     Stick Rod Repair 2025-11-28 2025-11-21            -6.8542          1547.80
+9                         Rod Truck                           Rod Repair 2022-07-04 2022-06-27            -6.7917             0.00
+10                        Rod Truck                    Polish Rod Repair 2021-03-26 2021-03-19            -6.7917             0.00
+11                        Rod Truck                           Rod Repair 2021-04-24 2021-04-17            -6.7500             0.00
+12  2-38.10mm Coil Tbg Plug Catcher  Charge To P109-P1, P109-P2 Gas Lift 2021-02-26 2021-02-20            -5.9583           710.00
+13                        Rod Truck                     Corod Rod Repair 2025-03-18 2025-03-12            -5.8958          8928.63
+14                         Workover                                Other 2024-10-24 2024-10-19            -4.7292          8864.58
+15                          Abandon                          Cut and Cap 2026-10-05        NaT            -1.0000           273.95
+16                          Abandon                          D/H Abandon 2026-10-05        NaT            -0.9903           900.00
+17                        Rod Truck                     Corod Rod Repair 2026-05-28 2026-05-27            -0.8750          1622.70
+18                        Rod Truck                           Rod Repair 2022-09-06 2022-09-06            -0.8125          6708.00
+19                        Rod Truck                     Corod Rod Repair 2024-11-01 2024-10-31            -0.7083          5560.45
+20                        Rod Truck                     Corod Rod Repair 2024-11-11 2024-11-11            -0.7083          4250.00
+21                        Rod Truck                     Stick Rod Repair 2024-11-07 2024-11-07            -0.5625          2030.00
+22                        Rod Truck                     Stick Rod Repair 2025-07-10 2025-07-10            -0.5417          1920.00
+23                        Rod Truck                     Corod Rod Repair 2025-06-30 2025-06-30            -0.5271          5406.88
+24                        Rod Truck                     Corod Rod Repair 2023-09-29 2023-09-29            -0.5000          4757.65
+25                         Workover                       Acid Treatment 2024-03-13 2024-03-13            -0.5000         13843.68
+26                        Rod Truck                    Polish Rod Repair 2022-08-22        NaT            -0.4792           795.00
+27                        Rod Truck                     Stick Rod Repair 2023-04-06 2023-04-06            -0.4271          1606.50
+28                        Rod Truck                    Polish Rod Repair 2026-08-05 2026-08-05            -0.4222          5302.75
+29                        Rod Truck                     Stick Rod Repair 2025-05-19 2025-05-19            -0.4201          4143.40
+30                        Rod Truck                     Corod Rod Repair 2024-05-27 2024-05-27            -0.4167          2899.35
+31                        Rod Truck                     Corod Rod Repair 2024-01-24 2024-01-24            -0.3750         15250.47
+32                        Rod Truck                    Polish Rod Repair 2023-10-12 2023-10-12            -0.3542           964.00
+33                        Rod Truck                     Corod Rod Repair 2026-05-08 2026-05-08            -0.3382          4146.60
+34                        Rod Truck                     Corod Rod Repair 2023-05-04 2023-05-04            -0.3125          6293.38
+35                        Rod Truck                           Rod Repair 2023-02-17 2023-02-17            -0.3125          6167.11
+36                        Rod Truck                     Stick Rod Repair 2026-02-20 2026-02-20            -0.3007          2474.80
+37                        Rod Truck                           Rod Repair 2021-03-02 2021-03-02            -0.2917             0.00
+38                        Rod Truck                    Polish Rod Repair 2023-03-01 2023-03-01            -0.2917          1888.00
+39                         Workover              Tubing Re-configuration 2024-06-06 2024-06-06            -0.2917         10242.20
+40                         Workover                          Pump Repair 2022-10-11 2022-10-11            -0.2917         17907.40
+41                       Completion                   Initial Completion 2023-01-17 2023-01-17            -0.2917         67841.64
+42                        Rod Truck                           Rod Repair 2023-02-07 2023-02-07            -0.2708          1160.00
+43                       Completion                   Initial Completion 2023-01-18 2023-01-18            -0.2708         65722.33
+44                        Rod Truck                     Stick Rod Repair 2024-11-13 2024-11-13            -0.2500          5073.80
+45                        Rod Truck                           Rod Repair 2022-10-09 2022-10-09            -0.2292          5352.50
+46                        Rod Truck                     Corod Rod Repair 2025-04-05 2025-04-04            -0.2083          4968.00
+47                            Other          Wellhead Maintenance/Repair 2022-09-28 2022-09-28            -0.2083         15219.29
+48                        Rod Truck                     Corod Rod Repair 2024-11-28 2024-11-28            -0.1667          2427.60
+49                         Coil Job                          Stimulation 2021-02-27 2021-02-27            -0.1458         23309.00
+50                        Rod Truck   Stick Rod Replacement - New String 2023-04-12 2023-04-12            -0.1458          2320.50
+51                        Rod Truck                             Coil Job 2023-07-30 2023-07-30            -0.1458          6214.40
+52                        Rod Truck                     Stick Rod Repair 2025-06-18 2025-06-18            -0.1431          1112.40
+53                        Rod Truck                     Corod Rod Repair 2025-09-15 2025-09-15            -0.1340          5755.55
+54                        Rod Truck                     Corod Rod Repair 2025-12-29 2025-12-29            -0.1250          4869.86
+55                        Rod Truck                     Stick Rod Repair 2023-05-10 2023-05-10            -0.1250          4177.00
+56                        Rod Truck                           Rod Repair 2022-09-27 2022-09-27            -0.1042          1903.75
+57                        Rod Truck                     Stick Rod Repair 2023-07-26 2023-07-26            -0.0833          4580.38
+58                        Rod Truck                           Rod Repair 2022-08-31 2022-08-31            -0.0833          6732.00
+59                        Rod Truck                     Corod Rod Repair 2025-02-24 2025-02-24            -0.0833          4180.00
+60                         Workover              Pump Repair/Replacement 2024-03-22 2024-03-22            -0.0625         21190.17
+61                        Rod Truck                     Stick Rod Repair 2023-12-29 2023-12-29            -0.0417          6936.00
+62                        Rod Truck                           Rod Repair 2022-08-04 2022-08-04            -0.0090             0.00
+63                        Rod Truck                     Corod Rod Repair 2025-09-15 2025-09-15            -0.0069          5553.65
+64                        Rod Truck                     Stick Rod Repair 2026-03-29 2026-03-29            -0.0062          2285.00
+
+### jobs: exact duplicate (uwi,start_date,job_type) rows
+   n_dup_groups  extra_rows
+0            37        39.0
+
+### failures: date anomalies
+      n  null_end  end_before_start  med_dur_days  before_2022
+0  2873      2872                 0           3.0            1
+
+### failures: exact duplicate (uwi, failure_start_date) rows
+   n_dup_groups  extra_rows
+0             9         9.0
+
+### Coverage by year: wells, rows, sensor fill % (Producing rows only)
+     yr  wells  n_rows  rpm_pct  torque_pct  current_pct  eff_pct  tbg_pct  csg_pct  oil_km3
+0  2021   1241  430146     59.3        32.4         26.3     47.6     62.8     53.3   1380.7
+1  2022   1305  443994     77.5        47.8         28.8     62.8     80.4     69.3   1390.8
+2  2023   1280  443330     81.4        50.6         30.8     70.1     86.0     74.8   1369.2
+3  2024   1340  458395     82.0        50.1         32.4     69.2     77.3     65.4   1407.1
+4  2025   1382  470069     82.5        47.8         33.5     67.9     73.3     57.4   1306.3
+5  2026   1380  394596     80.9        47.3         34.0     64.2     72.3     55.9    963.1
+
+### Failures and jobs by year
+      y  failures    jobs  rod_truck_jobs
+0  2021       1.0  1837.0          1160.0
+1  2022       1.0  2587.0          1596.0
+2  2023       0.0  2782.0          1621.0
+3  2024       0.0  2975.0          1677.0
+4  2025    1230.0  3044.0          1873.0
+5  2026    1641.0  2385.0          1432.0
+
+### Rows per well: distribution of days per well
+   mn    p10     p50    mx
+0   1  646.0  2126.0  2126
+
+### Flatline check: % of consecutive-day pairs with identical value (Producing, both non-null)
+   torque_same  current_same  rpm_same  tubing_same  eff_same
+0         94.7          96.9      97.1         97.5       0.6
+
+### UWI join coverage (distinct wells in event file that exist in daily)
+          f  wells  matched    pct
+0      jobs   1903     1834  96.37
+1  failures    825      824  99.88
+
+### Row-level join: event rows that have a daily row for the same uwi on the event date
+                             k      n  matched    pct
+0              jobs.start_date  15611    14575  93.36
+1  failures.failure_start_date   2874     2872  99.93
+
+### formatted_uwi consistency: same uwi -> one formatted_uwi?
+   daily_multi  jobs_multi
+0            0           0
+
+### Static attributes that change within a well (daily)
+   multi_facility  multi_area  multi_lat  multi_pump_model
+0              93           0          0              1041
+
+### Failure -> job linkage: failures with a Rod Truck/Workover job on same well within 0..14 days after
+   n_fail  with_job   pct
+0    2873      2818  98.1
+
+### Leakage check: downtime_code_2 on the failure date (failures joined to daily)
+       downtime_code_2     n
+0   Downhole Equipment  2290
+1                  NaN   485
+2           Uneconomic    24
+3    Surface Equipment    22
+4             Facility    22
+5            Scheduled    15
+6  Power Source/Supply     7
+7             Pipeline     3
+8          Development     3
+9           Regulatory     1
+
+### Leakage check: hours_down on the failure date
+   mean_hours_down  pct_down  pct_oil_gt0
+0            13.78      83.2         58.1
+
+### Failure areas vs daily areas (failures only logged in some areas?)
+                             a  wells  prod_wells_2022p  failures  rodtruck_jobs_2022p
+0                  Cactus Lake    884               519       957                 2714
+1                       Winter    372               275       829                 2726
+2                   Druid Main    200               161       238                  383
+3              Fenn Big Valley    141               128         0                    0
+4                        Court    289               113       224                  660
+5                    Bodo East    169                93       181                  650
+6                       Cosine    165                83       255                  689
+7     Plover Lake Conventional    366                75         8                   27
+8                   CHO-Non-Op     79                58         0                    0
+9             Druid North East     53                45        80                  123
+10                      Bellis     39                29        46                  115
+11           Cactus Lake North     30                21         0                    0
+12                   Bodo Main     24                20         4                   16
+13                  Bodo South     27                20        14                   37
+14                Manitou Lake     18                11         0                    0
+15                    Edgerton     12                 9         2                    2
+16                   Westhazel      5                 4         0                    3
+17                    Wildmere      2                 2         0                    0
+18                    Neilburg      2                 2         0                    1
+19                   Ferrybank      1                 1         0                    1
+20                  Ewing Lake      7                 1         0                    0
+21                    Swalwell      1                 1         0                    0
+22             CHO - Misc Sask      1                 0         0                    0
+23             CHO - Non Op AB      2                 0         0                    0
+24  Fenn Big Valley Ewing Lake     15                 0         0                    0
+25                    Dimsdale      1                 0         0                    0
+
+### Failure log records per month (completeness)
+          m    n
+0   2021-12    1
+1   2022-08    1
+2   2025-01    1
+3   2025-02    2
+4   2025-05   27
+5   2025-06  172
+6   2025-07  174
+7   2025-08  177
+8   2025-09  178
+9   2025-10  171
+10  2025-11  168
+11  2025-12  160
+12  2026-01  175
+13  2026-02  166
+14  2026-03  183
+15  2026-04  145
+16  2026-05  176
+17  2026-06  128
+18  2026-07  197
+19  2026-08  168
+20  2026-09  170
+21  2026-10  133
+
+### Job taxonomy change: rod job types by year
+      y  rod_repair_generic  corod_repair  stick_repair  med_cost_generic
+0  2021                1052             0             0               0.0
+1  2022                1534             0             0               0.0
+2  2023                 383           544           414            4541.0
+3  2024                   3           737           630            5250.0
+4  2025                   9           911           562           37426.0
+5  2026                  14           684           470           43810.0
+
+### Share of Rod Truck jobs with field_est_total = 0, by year
+      y     n  pct_zero_cost
+0  2021  1160           99.9
+1  2022  1596           60.3
+2  2023  1621            0.5
+3  2024  1677            0.4
+4  2025  1873            0.2
+5  2026  1432            0.1
+
+### Sensor update cadence: producing days per value change (non-null, consecutive days)
+   torque_days_per_change  current_days_per_change  rpm_days_per_change
+0                    18.9                     32.4                 34.5
+
+### Downtime ramp before the logged failure date (all failure-log records, day k relative to failure_start_date)
+     k  mean_hours_down  share_coded  mean_oil_m3
+0  -14             2.93        0.164         4.02
+1  -13             3.07        0.177         3.99
+2  -12             3.24        0.177         3.95
+3  -11             3.45        0.193         3.91
+4  -10             3.58        0.193         3.88
+5   -9             3.85        0.211         3.88
+6   -8             4.13        0.217         3.89
+7   -7             4.66        0.242         3.79
+8   -6             5.24        0.270         3.73
+9   -5             6.18        0.315         3.58
+10  -4             7.48        0.371         3.35
+11  -3             9.62        0.477         2.95
+12  -2            13.76        0.687         2.18
+13  -1            18.10        0.861         1.20
+14   0            13.78        0.831         1.81
+15   1             7.25        0.462         2.91
+16   2             4.68        0.285         3.33
+
+### Producing rows with an 'Uneconomic' downtime code (well flagged Producing but shut in)
+   n_rows  wells  lost_oil_m3
+0  244342    480     144515.0
+
+### Sentinel/implausible value counts used by common.CLEAN
+   torque_gt20000  rpm_gt1000  current_gt1000  tubing_gt20000  tubing_eq_22598_3  casing_eq_85873_5  eff_gt3  eff_lt0  oil_lt0  water_lt0
+0             516        6820             113            1155               1138                819     5565     2001     3720      10284
+
+### pcp_pump_make spelling variants
+            mk  variants                                 spellings
+0     EUROPUMP         2                       Europump | EUROPUMP
+1          PCM         3                           pcm | PCM | PCm
+2         KUDU         2                               KUDU | Kudu
+3        MANTL         3                     Mantl | MAntl | MANTL
+4  WEATHERFORD         3  Weatherford | Weatherford  | WEATHERFORD
+
+### failure_type free-text variants (values with <10 rows)
+   n_values  n_rows
+0        26      27
