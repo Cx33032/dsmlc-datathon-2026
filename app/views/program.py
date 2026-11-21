@@ -65,8 +65,9 @@ prog = prog.assign(avoided=avoided, net=net).sort_values("net", ascending=False)
 be = breakeven(econ, pm3, hr=hr, cost_mult=cm_, horizon=hz, lost_oil=lost_on)
 worst = worst_case_wells(prog, econ, pm3)
 # Net value = (repairs avoided × cost of one failure) - extra cost of a new string; split it into its two parts.
+fc = fail_cost(econ, pm3, lost_on)
 cost = len(prog) * econ["inc_cost"] * cm_
-saved = float(prog["avoided"].sum()) * fail_cost(econ, pm3, lost_on)
+saved = float(prog["avoided"].sum()) * fc
 n_pos = int((prog["net"] > 0).sum())
 
 # ---------------------------------------------------------------- the answer
@@ -90,6 +91,36 @@ m3.metric(f"Saved, {hz:.0f} yr", ui.money(saved),
           help="Repairs avoided × cost of one rod failure (repair job" + (" + lost oil)." if lost_on else ")."))
 m4.metric(f"Net value, {hz:.0f} yr", ui.money(prog["net"].sum()), help=ui.TERMS["Net value"])
 m5.metric("Pays back above", f"{be:.1f}/yr", help=ui.TERMS["Pays back above"] + " Unit: rod repairs per year.")
+
+# ---------------------------------------------------------------- what "net value" means
+gross, capex = saved, cost
+with st.expander(f"How the net value over {hz:.0f} yr is worked out", icon=":material/calculate:"):
+    a, b = st.columns([3, 2])
+    with a:
+        st.markdown(f"**For each well: net value = repairs a new string avoids over {hz:.0f} yr × cost of one failure − "
+                    "extra cost of a new string.** The headline adds that up over the wells shown.")
+        st.markdown(f"- **Repairs avoided** = the well's repairs last year × (1 − {hr:.3f}) × {hz:.0f} yr. Over these "
+                    f"{len(prog)} wells: {int(prog['repairs_last365'].sum())} repairs a year → "
+                    f"**{prog['avoided'].sum():,.0f} repairs avoided**.\n"
+                    f"- × **{ui.cad(fc)}** per failure = **{ui.cad(gross)}** of repairs and lost oil that never happen.\n"
+                    f"- − **{ui.cad(econ['inc_cost'] * cm_)}** extra per new string × {len(prog)} wells = "
+                    f"**{ui.cad(capex)}**.\n"
+                    f"- = **{ui.cad(gross - capex)}** net value over {hz:.0f} yr.")
+        st.markdown(ui.failure_cost_md(econ, pm3, lost_on))
+        st.markdown(ui.new_string_md(econ, cm_))
+        st.caption("'Net' = money saved minus money spent, not discounted. The stress-test settings above change every "
+                   "number here.")
+    with b:
+        fig = go.Figure(go.Waterfall(
+            x=["Failures avoided", "Extra cost of new strings", "Net value"], measure=["relative", "relative", "total"],
+            y=[gross / 1e6, -capex / 1e6, 0], text=[ui.money(gross), "-" + ui.money(capex), ui.money(gross - capex)],
+            textposition="outside", cliponaxis=False, connector=dict(line=dict(color=ui.GRAY, width=1)),
+            increasing=dict(marker=dict(color=ui.AQUA)), decreasing=dict(marker=dict(color=ui.CRITICAL)),
+            totals=dict(marker=dict(color=ui.BLUE)), hovertemplate="%{x}: C$%{y:.2f}M<extra></extra>"))
+        fig.update_layout(title=f"Savings minus extra cost leave {ui.money(gross - capex)} over {hz:.0f} yr",
+                          yaxis_title="million C$", showlegend=False)
+        fig.update_yaxes(range=[min(0, (gross - capex) / 1e6 * 1.2), gross / 1e6 * 1.2])
+        ui.show(ui.style(fig, 320))
 
 # ---------------------------------------------------------------- ranked wells (replaces the table)
 st.subheader("Which wells first")
@@ -152,9 +183,9 @@ NAMES = {"central": "Expected case",
          "lost oil ignored (job cost only)": "Repair job cost only, no lost oil",
          "oil price -30%": "Oil price 30% lower",
          "incremental replace cost x2": "New string costs twice as much",
-         "1-year horizon": "Only 1 year of benefit",
-         "worst combo: HR upper CI, job cost only, cost x2, 1 yr": "Worst case: the 4 pessimistic cases above together"}
+         "1-year horizon": "Only 1 year of benefit"}
 sens = sensitivity(prog["repairs_last365"], econ, pm3)
+sens = sens[~sens["scenario"].str.startswith("worst combo")].reset_index(drop=True)
 vals = sens["program_net_CAD"] / 1e6
 labels = [NAMES.get(s, s) for s in sens["scenario"]]
 txt = [f"{ui.money(v)} · {w} wells pay back" for v, w in zip(sens["program_net_CAD"], sens["wells_positive"])]
@@ -172,8 +203,7 @@ lo = min(0, vals.min() * 1.3)
 fig.update_xaxes(range=[lo, vals.max() * 1.9])
 fig.update_layout(showlegend=False)
 ui.show(fig)
-ui.explain("Each bar changes one assumption against the program. The last bar combines the weakest effect, job cost "
-           "only, double string cost and 1 year." + (" Even then some wells still pay back." if len(worst) else ""))
+ui.explain("Each bar changes one assumption and keeps the rest at the expected case.")
 
 if len(worst):
     fig = ui.hbar([f"{u} · {a}" for u, a in zip(worst["uwi"], worst["area"])], worst["worst_case_net"] / 1e3,
@@ -182,6 +212,8 @@ if len(worst):
                   title=f"Start with these {len(worst)} wells: they pay back even in the worst case")
     fig.update_xaxes(range=[0, worst["worst_case_net"].max() / 1e3 * 1.5])
     ui.show(fig)
+    ui.explain("Worst case = the weakest new-string effect, repair job cost only, double string cost and 1 year of "
+               "benefit, all at once.")
 st.caption(f"From the job records: a repair job costs C${econ['repair_job_cost']:,.0f} on average (2023 on, cost > 0), "
            f"each repair loses {econ['lost_m3_per_repair_mean']:.1f} m³ of oil, and a new string costs "
            f"C${econ['inc_cost']:,.0f} more than a repair. Lost oil is valued at C${pm3:,.0f}/m³.")

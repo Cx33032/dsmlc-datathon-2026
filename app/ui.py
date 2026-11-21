@@ -264,6 +264,44 @@ def money(x: float) -> str:
     return ("-" if x < 0 else "") + s
 
 
+def cad(x: float) -> str:
+    """Exact dollars for worked arithmetic (money() rounds to k / M)."""
+    return ("-" if x < 0 else "") + f"C\\${abs(x):,.0f}"
+
+
+def mmoney(x: float) -> str:
+    """money() for markdown text, where a bare $ pair would render as LaTeX."""
+    return money(x).replace("$", "\\$")
+
+
+def failure_cost_md(econ: dict, pm3: float, lost_oil: bool = True) -> str:
+    """Where 'cost of one more rod failure' comes from, with the current sidebar price."""
+    lost = econ["lost_m3_per_repair_mean"]
+    oil = lost * pm3 if lost_oil else 0.0
+    total = econ["repair_job_cost"] + oil
+    return (f"**Cost of one rod failure = repair job + oil lost while the well is down = {cad(total)}**\n"
+            f"- **Repair job {cad(econ['repair_job_cost'])}**: the average cost of rod-repair jobs in the job records "
+            "(jobs since 2023 with a cost above zero; older repair rows are often entered as \\$0).\n"
+            f"- **Lost oil {cad(oil)}**: on average a rod repair costs **{lost:.1f} m³** of oil, the downhole downtime "
+            "logged in the daily records from 7 days before the job until the day after it ends, "
+            + (f"× **C\\${pm3:,.0f}/m³** (the oil price in the sidebar)." if lost_oil
+               else "not counted under the current stress-test setting."))
+
+
+def new_string_md(econ: dict, cost_mult: float = 1.0) -> str:
+    """Where the extra cost of a new string and the hazard ratio come from."""
+    inc = econ["inc_cost"] * cost_mult
+    return (f"- **Extra cost of a new string {cad(inc)}**: an average new-string job costs "
+            f"{cad(econ['replace_job_cost'])} vs {cad(econ['repair_job_cost'])} for a repair. The rig is on the well "
+            "anyway at the next pull, so only the difference counts"
+            + (" (doubled by the stress test)." if cost_mult != 1 else ".") + "\n"
+            f"- **Hazard ratio {econ['hr_chronic']:.2f}** (95% CI {econ['hr_chronic_lo']:.2f}–{econ['hr_chronic_hi']:.2f}): "
+            f"in the job history, wells that got a new string had their next rod repair at {econ['hr_chronic']:.2f}× the "
+            "rate of wells that got an ordinary repair. That comes from a survival (Cox) model on wells with 2+ repairs "
+            "in the prior year, adjusted for prior failures, pump speed, liquid rate and area. So a new string removes "
+            f"about {1 - econ['hr_chronic']:.0%} of the repairs the well would otherwise have.")
+
+
 def well_label(uwi: str) -> str:
     return uwi
 
