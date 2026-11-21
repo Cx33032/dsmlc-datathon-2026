@@ -148,13 +148,25 @@ else:
         g["label"] = [f"{u} · {o:%d %b %Y}" for u, o in zip(g["uwi"], g["onset"])]
         g["downhole"] = g["cause"].str.startswith("Downhole")
         tot = pool["lag_loss_m3"].sum()
+        dh = pool["cause"].str.startswith("Downhole")
+        dh_m3, rs_m3 = pool.loc[dh, "lag_loss_m3"].sum(), pool.loc[~dh, "lag_loss_m3"].sum()
+        t1, t2, t3 = st.columns(3)
+        t1.metric("Total lost while lagging", f"{tot:,.0f} m³", f"{ui.money(tot * pm3)} · {len(pool)} wells",
+                  delta_arrow="off", delta_color="off",
+                  help=f"{pool['days_after_peers'].sum():,.0f} well-days down after 75% of peers were back, × each "
+                       "well's usual daily rate." + (" All laggards in the selection, not only the bars shown."
+                                                     if len(g) < len(pool) else ""))
+        t2.metric("Recoverable by restart", f"{rs_m3:,.0f} m³", f"{ui.money(rs_m3 * pm3)} · {int((~dh).sum())} wells",
+                  delta_arrow="off", delta_color="off", help="Blue bars: nothing wrong was logged on the well, so a timely restart "
+                                                          "check could have recovered this oil.")
+        t3.metric("Downhole (needed a rig)", f"{dh_m3:,.0f} m³", f"{ui.money(dh_m3 * pm3)} · {int(dh.sum())} wells",
+                  delta_arrow="off", delta_color="off", help="Orange bars: the well logged its own downhole problem.")
         fig = ui.hbar(g["label"], g["lag_loss_m3"], colors=[ui.ORANGE if d else ui.BLUE for d in g["downhole"]],
                       text=[f"{d:.0f} days late · {ui.money(v * pm3)} · {c}"
                             for d, v, c in zip(g["days_after_peers"], g["lag_loss_m3"], g["cause"])],
                       xaxis="oil lost while lagging (m³)", hover="%{y}<br>%{x:.1f} m³<extra></extra>",
-                      title=f"Oil lost while each well waited (click a bar). Total: {tot:,.0f} m³ = "
-                            f"{ui.money(tot * pm3)} across {len(pool)} laggards"
-                            + (f", top {len(g)} shown" if len(g) < len(pool) else ""))
+                      title="Oil lost while each well waited (click a bar)"
+                            + (f", top {len(g)} of {len(pool)} shown" if len(g) < len(pool) else ""))
         fig.update_xaxes(range=[0, g["lag_loss_m3"].max() * 1.9])
         lev = ui.show(fig, on_select="rerun", selection_mode="points", key="fac_lag")
         ui.explain("Orange = the well logged its own downhole problem (rods, pump, tubing), so it likely broke during "

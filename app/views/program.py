@@ -148,6 +148,7 @@ with right:
 # ---------------------------------------------------------------- stress test (replaces the sensitivity table)
 st.subheader("Does it survive pessimism?")
 sens = sensitivity(prog["repairs_last365"], econ, pm3)
+sens = sens[~sens["scenario"].str.startswith("worst combo")]
 colors = [ui.BLUE if v > 0 else ui.CRITICAL for v in sens["program_net_CAD"]]
 fig = ui.hbar(sens["scenario"], sens["program_net_CAD"] / 1e6, colors=colors,
               text=[f"{ui.money(v)} · pays back above {b:.1f}/yr · {w} wells positive"
@@ -157,7 +158,7 @@ fig = ui.hbar(sens["scenario"], sens["program_net_CAD"] / 1e6, colors=colors,
 lo = min(0, sens["program_net_CAD"].min() / 1e6 * 1.3)
 fig.update_xaxes(range=[lo, sens["program_net_CAD"].max() / 1e6 * 1.9])
 ui.show(fig)
-ui.explain("The last bar stacks every pessimistic case at once. Even then some wells still pay back.")
+ui.explain("Each bar changes one assumption and keeps the rest at the central case.")
 
 worst = worst_case_wells(prog, econ, pm3)
 st.markdown(f"**Start with these {len(worst)}.** They pay back even when every pessimistic case is true at once "
