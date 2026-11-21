@@ -28,6 +28,20 @@ parquet ──► run_pipeline.py ──► export_to_canary.py ──► CSV Co
 
 ## 2. Load data
 
+**Option A: write API (no CSV Collector needed; what we used).** Canary 26 accepts data through the Store and
+Forward service on `https://localhost:55293`. Make a token in Canary Admin → Identity → API Tokens → ADD (user =
+your own Windows account), save it as one line in `canary/.api_token` (git-ignored) or set `CANARY_TOKEN`, then:
+
+```powershell
+python canary/load_to_canary_api.py --start 2026-10-01 --areas Winter   # small test first
+python canary/load_to_canary_api.py                                     # 2026 YTD, all areas
+```
+
+Timestamps are sent at UTC−06:00 (Saskatchewan, no daylight saving). Re-running replaces values, so a load can
+be repeated safely. Check the result in Canary Views under `localhost › Strathcona › Area › Well`.
+
+**Option B: CSV Collector.** Write CSV files and let the collector pick them up:
+
 ```powershell
 python run_pipeline.py
 python canary/export_to_canary.py --out C:/CanaryImport/Strathcona          # 2026 YTD, all areas
