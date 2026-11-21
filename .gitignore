@@ -1,0 +1,10 @@
+# Competition data - may not be redistributed (Strathcona Resources terms)
+*.parquet
+*.pdf
+outputs/
+
+# Environment / tooling
+.venv/
+__pycache__/
+*.pyc
+.claude/settings.local.json
