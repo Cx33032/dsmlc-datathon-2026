@@ -11,7 +11,11 @@ from pathlib import Path
 import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import importlib  # noqa: E402
+
 import ui  # noqa: E402
+
+ui = importlib.reload(ui)   # pick up edits to the shared helpers without restarting the server
 
 st.set_page_config(page_title="Predict the Break, Protect the Barrel", layout="wide", page_icon=":material/oil_barrel:")
 

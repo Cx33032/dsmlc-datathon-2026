@@ -4,6 +4,10 @@ import streamlit as st
 import ui
 
 st.title("Assumptions & limits")
+ui.intro("What could make these numbers wrong, and how would we check?",
+         ["Pick the <b>decision</b> you care about, or leave it on All.",
+          "Each card says what we assumed or could not see.",
+          "The grey line under it says how we would test it, usually in a pilot."])
 econ = ui.art("ideas/1/economics.json") or {}
 m5 = ui.art("ideas/5/metrics.json") or {}
 v = ui.art("ideas/whiplash/verdict.json") or {}
@@ -35,8 +39,19 @@ rows = [
     ("Chronic list is a snapshot", f"As of {econ.get('asof', '2026-10-27')}. Wells move on and off as repairs age out.",
      "Rebuild artifacts weekly (`build_artifacts.py`)."),
 ]
-for title, what, check in rows:
-    with st.container(border=True):
+HORIZON = {"The new-string effect is observational": "At the pull", "Break depth covers 45% of rod failures": "At the pull",
+           "Section replacement saves 40%": "At the pull", "15% field-gate haircut on WCS": "All $ figures",
+           "Revenue, not margin": "All $ figures", "Posting lag": "Today", "Daily data cannot see short shocks": "Between failures",
+           "Dispatch queue is a reconstruction": "Today", "Chronic list is a snapshot": "At the pull"}
+with ui.filters():
+    pick = st.segmented_control("Decision", ["All", "Today", "At the pull", "Between failures", "All $ figures"],
+                                default="All") or "All"
+shown = [r for r in rows if pick == "All" or HORIZON.get(r[0]) == pick]
+st.caption(f"{len(shown)} of {len(rows)} assumptions")
+cols = st.columns(2)
+for i, (title, what, check) in enumerate(shown):
+    with cols[i % 2].container(border=True):
+        st.caption(HORIZON.get(title, ""))
         st.markdown(f"**{title}**")
         st.write(what)
         st.caption(f"How we would check it: {check}")

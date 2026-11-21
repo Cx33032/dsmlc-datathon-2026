@@ -55,6 +55,45 @@ def sidebar():
     st.sidebar.caption(f"= C${price_m3():,.0f}/m³ · revenue, not margin")
 
 
+def intro(question: str, steps: list[str], note: str | None = None):
+    """Page header: the one question the page answers, then numbered how-to steps."""
+    st.markdown(f"<div style='font-size:1.05rem;opacity:.85;margin:-6px 0 10px'>{question}</div>",
+                unsafe_allow_html=True)
+    cols = st.columns(len(steps))
+    for i, (c, s) in enumerate(zip(cols, steps), start=1):
+        c.markdown(f"<div style='display:flex;gap:10px;align-items:flex-start'>"
+                   f"<div style='flex:none;width:24px;height:24px;border-radius:50%;background:{BLUE};color:white;"
+                   f"font-weight:600;font-size:13px;display:flex;align-items:center;justify-content:center'>{i}</div>"
+                   f"<div style='font-size:.92rem;line-height:1.35'>{s}</div></div>", unsafe_allow_html=True)
+    if note:
+        st.caption(note)
+    st.write("")
+
+
+def filters(label: str = "Filters"):
+    """A bordered filter bar; use as `with ui.filters(): ...`."""
+    box = st.container(border=True)
+    box.markdown(f"<div style='font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;"
+                 f"opacity:.7'>{label}</div>", unsafe_allow_html=True)
+    return box
+
+
+def explain(text: str):
+    """A one-line 'how to read this chart' note under a chart."""
+    st.caption(f":material/info: {text}")
+
+
+def hbar(labels, values, colors=None, text=None, hover=None, title=None, xaxis=None, height=None, customdata=None):
+    """Horizontal bar chart, largest at the top, one bar per row (the default replacement for a table)."""
+    labels = list(labels)
+    fig = go.Figure(go.Bar(y=labels, x=list(values), orientation="h", marker_color=colors or BLUE,
+                           text=text, textposition="outside", cliponaxis=False, customdata=customdata,
+                           hovertemplate=hover or "%{y}: %{x:,.1f}<extra></extra>"))
+    fig.update_layout(title=title, xaxis_title=xaxis, bargap=0.25,
+                      yaxis=dict(autorange="reversed", automargin=True))
+    return style(fig, height or max(200, 26 * len(labels) + 60))
+
+
 def is_demo() -> bool:
     return bool(st.session_state.get("demo", not private_available()))
 
@@ -122,7 +161,7 @@ def show(fig, **kw):
     if title:
         st.markdown(f"**{title}**")
         fig.update_layout(title=None)
-    st.plotly_chart(fig, use_container_width=True, theme="streamlit", **kw)
+    return st.plotly_chart(fig, use_container_width=True, theme="streamlit", **kw)
 
 
 def money(x: float) -> str:
