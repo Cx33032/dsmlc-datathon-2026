@@ -78,6 +78,8 @@ the same measure names, so one Axiom template works for all 2,240 producers.
 
 ## 5. Axiom screens to build
 
+**Step-by-step build guide, control by control: [AXIOM_SCREENS.md](AXIOM_SCREENS.md).** Summary:
+
 1. **Field overview.** Tiles show `_Field._Total.Oil_m3d`, `AvoidableLostOil_m3` and
    `WellsInAlarm`, with one trend per area (`*._Area.EstLostOil_m3`). Answers: "where is oil going
    today?"
