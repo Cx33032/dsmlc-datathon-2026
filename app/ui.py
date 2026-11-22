@@ -54,7 +54,7 @@ CSS = f"""<style>
 
 
 # ---------------------------------------------------------------- glossary
-# Each definition is taken from docs/Dataset_Handbook.md, docs/ideas/*/idea.md or the app's own methods.
+# Each definition is taken from the competition's Dataset Handbook, the idea analyses or the app's own methods.
 TERMS = {
     "UWI": "Unique Well Identifier, the Canadian standard well label. It is built from the well's legal land location.",
     "m³": f"Cubic metres of oil. 1 m³ = {M3_TO_BBL:.2f} barrels (bbl).",

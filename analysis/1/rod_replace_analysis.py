@@ -1,7 +1,7 @@
 """Idea 1 - Rod string: repair or replace?  Chronic-failure well program.
 
-Run:  python data/ideas/1/rod_replace_analysis.py
-Outputs: data/ideas/1/out/results.txt, data/ideas/1/out/chronic_wells.csv, charts in docs/ideas/1/assets/
+Run:  python analysis/1/rod_replace_analysis.py
+Outputs: analysis/1/out/results.txt, analysis/1/out/chronic_wells.csv, charts in docs/ideas/1/assets/
 
 Unit of analysis = one downhole rod job (deduplicated within 3 days per well).
   repair  = Rod Repair / Corod Rod Repair / Stick Rod Repair / Rod Break - Corod

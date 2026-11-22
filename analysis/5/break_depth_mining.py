@@ -1,7 +1,7 @@
 """Idea 5 - Where do strings break? Mining crew free text for break depth and corrosion evidence.
 
-Run:  python data/ideas/5/break_depth_mining.py
-Outputs: data/ideas/5/out/results.txt, data/ideas/5/out/located_breaks.csv, charts in docs/ideas/5/assets/
+Run:  python analysis/5/break_depth_mining.py
+Outputs: analysis/5/out/results.txt, analysis/5/out/located_breaks.csv, charts in docs/ideas/5/assets/
 
 Sources of text:
   production_failures.failure_comments  e.g. "Broken corod @ 247m", "Broken Pin on JT #31", "Broken stick rod 48th"

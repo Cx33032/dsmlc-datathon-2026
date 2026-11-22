@@ -91,7 +91,7 @@ def test_shock_index_on_day_D_uses_rows_before_D_only():
 
 
 def test_whiplash_hazard_window_ends_at_least_7_days_before_the_failure():
-    src = (ROOT / "data/ideas/whiplash/shock_index.py").read_text(encoding="utf-8")
+    src = (ROOT / "analysis/whiplash/shock_index.py").read_text(encoding="utf-8")
     gap = int(re.search(r"GAP_D, WIN_D = (\d+), (\d+)", src).group(1))
     assert gap >= 7
     assert 'h_anchor = r.fd - pd.Timedelta(days=GAP_D)' in src

@@ -116,9 +116,9 @@ The sidebar holds two controls:
 
 | Today's queue | Well card |
 |---|---|
-| ![Today's queue](docs/screenshots/queue.jpg) | ![Well card](docs/screenshots/well_card.jpg) |
+| ![Today's queue](screenshots/queue.jpg) | ![Well card](screenshots/well_card.jpg) |
 | **Facility restarts** | **Evidence** |
-| ![Facility restarts](docs/screenshots/facility_restarts.jpg) | ![Evidence](docs/screenshots/evidence.jpg) |
+| ![Facility restarts](screenshots/facility_restarts.jpg) | ![Evidence](screenshots/evidence.jpg) |
 
 _Screenshots use the synthetic demo data, so no real wells or crew notes appear in the repository._
 
@@ -193,7 +193,7 @@ value and **Bad** quality (0). The historian keeps the evidence but trends skip 
 
 Step-by-step install, load and screen-building instructions: [canary/README.md](canary/README.md). The organizers'
 setup troubleshooting guide (time zone, clean install, licence reset) is in
-[docs/Canary Labs Installation Guide](docs/Canary%20Labs%20Installation%20Guide/Canary_Setup_Troubleshooting_Guide.md).
+[canary/Canary_Setup_Troubleshooting_Guide.md](canary/Canary_Setup_Troubleshooting_Guide.md).
 
 ### 3. How this meets the Best Use of Canary criteria
 
@@ -260,7 +260,7 @@ decision.
 - **Laggard:** a well back 3+ days after 75% of its peers.
 - These definitions were fixed before looking at the results.
 
-**Replace vs repair** (`data/ideas/1/rod_replace_analysis.py`, `src/economics.py`):
+**Replace vs repair** (`analysis/1/rod_replace_analysis.py`, `src/economics.py`):
 - Rod jobs within 3 days on a well are merged into one event.
 - A Cox model of time to the next rod repair, stratified by area × year, adjusted for prior repairs, RPM and liquid
   rate, using events from 2022 on so prior history is complete.
@@ -268,7 +268,7 @@ decision.
 - Net value of a new string = repairs per year × (1 − HR) × 2 years × cost per failure − the extra cost of a new
   string (C$14,010).
 
-**Break depths** (`data/ideas/5/break_depth_mining.py`):
+**Break depths** (`analysis/5/break_depth_mining.py`):
 - A depth is read from crew notes only when the wording is unambiguous:
   - "Broken corod @ 247m";
   - a joint number × 7.62 m on stick rods;
@@ -284,7 +284,7 @@ decision.
 - Watch and alarm thresholds = top 5% and top 2% of 2024 scores.
 - TreeSHAP gives the reasons behind each score.
 
-**Mechanical whiplash** (`data/ideas/whiplash/shock_index.py`, `src/shock.py`):
+**Mechanical whiplash** (`analysis/whiplash/shock_index.py`, `src/shock.py`):
 - A shock index is built from day-to-day changes in RPM, torque, current and run hours, scored against each well's
   own past.
 - **Tested two ways:**
@@ -377,10 +377,10 @@ app/dashboard.py               former Field monitor page (not in the menu; the w
 build_artifacts.py             builds everything the app and Canary read
 run_pipeline.py                cleaning, lost oil, early-warning model, queue, facility restarts
 src/                           data, features, losses, model, dispatch, facility, rules, economics, shock, demo
-data/ideas/1, 5, whiplash      replace vs repair, break-depth mining, whiplash test
+analysis/1, 5, whiplash       replace vs repair, break-depth mining, whiplash test
 canary/                        Canary CSV Collector export, collector config, setup and screen guide
 tests/                         reproduction, leakage and decision-rule tests
-docs/ideas/                    idea write-ups and charts; docs/screenshots: app screenshots (synthetic data)
+screenshots/                   app screenshots (synthetic data)
 DATA_SUMMARY.md                data profile (aggregate statistics only)
 ```
 
@@ -391,7 +391,7 @@ DATA_SUMMARY.md                data profile (aggregate statistics only)
 - Canary Labs, *How to Configure the CSV Collector (v26)*, help-centre article (collector settings and quality
   codes); Canary installation guide supplied by the organizers
 - PetroWiki: progressing cavity pumps; the competition Dataset Handbook (PCP, rod string, water cut)
-- Price inputs (cited in `data/ideas/common.py`):
+- Price inputs (cited in `analysis/common.py`):
   - WTI from OilPriceAPI (2026-11-19);
   - the WCS Hardisty differential from CalRock via Reuters (2026-11-13);
   - USD/CAD from the Bank of Canada (2026-11-20).
@@ -412,7 +412,7 @@ This project was built with help from **Claude (Anthropic) via Claude Code**, wo
 - the whiplash test and the test suite;
 - much of the documentation.
 
-**What the team wrote:** the idea analyses in `data/ideas/` (with AI assistance).
+**What the team wrote:** the idea analyses in `analysis/` (with AI assistance).
 
 **Review:** the team reviewed the methods and the numbers, and is responsible for every claim. We checked
 specifically:
@@ -430,4 +430,4 @@ by a regex parser that runs locally.
 
 The competition dataset belongs to Strathcona Resources and is **not** included in this repository, in line with the
 competition terms (see `.gitignore`). `outputs/` holds derived results and is also excluded. Screenshots in
-`docs/screenshots/` use the synthetic demo data.
+`screenshots/` use the synthetic demo data.

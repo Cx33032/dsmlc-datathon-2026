@@ -1,6 +1,6 @@
 """Mechanical Whiplash - is volatile operation (not the RPM level) followed by rod failures?
 
-Run:  python data/ideas/whiplash/shock_index.py      (after Idea 1, which provides rod job events)
+Run:  python analysis/whiplash/shock_index.py      (after Idea 1, which provides rod job events)
 Outputs: <out>/whiplash/results.txt, verdict.json, results_table.csv, case_crossover_pairs.csv,
          perm_null.csv, well_shock.parquet; charts in docs/ideas/whiplash/assets/
 
@@ -26,7 +26,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import common as cm
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from src import shock  # noqa: E402
 import numpy as np
 import pandas as pd

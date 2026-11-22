@@ -100,7 +100,7 @@ with st.expander("Where the numbers come from", icon=":material/database:"):
                     "- **Well jobs:** one row per job (15,610), with job type and cost.\n"
                     "- **Production failures:** one row per logged failure (2,873), with cause and crew comments.")
     st.caption("The app reads only tables built by build_artifacts.py --demo." if ui.is_demo() else
-               "Source: docs/Dataset_Handbook.md. The app reads only tables built from these files by "
+               "Source: the competition's Dataset Handbook. The app reads only tables built from these files by "
                "build_artifacts.py.")
     st.page_link(ui.PAGES["limits"], label="See what the numbers cannot show: Assumptions & limits",
                  icon=":material/arrow_forward:")

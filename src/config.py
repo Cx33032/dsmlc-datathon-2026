@@ -17,7 +17,7 @@ FAILURES = DATA_DIR / "production_failures.parquet"
 
 M3_TO_BBL = 6.28981
 # ------------------------------------------------------------------ one central oil price
-# Same derivation as data/ideas/common.py (sources cited there): WTI 83.45 USD/bbl, WCS Hardisty
+# Same derivation as analysis/common.py (sources cited there): WTI 83.45 USD/bbl, WCS Hardisty
 # differential -26.20 USD/bbl, USD/CAD 1.4325, then a 15% field-gate haircut (our own assumption,
 # no Strathcona netback was given). = C$69.7/bbl = C$438.5/m3. Every $ figure in the app is
 # recomputed from the sidebar price slider, which defaults to this value.

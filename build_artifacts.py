@@ -21,9 +21,9 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-IDEA_SCRIPTS = [("1", ROOT / "data/ideas/1/rod_replace_analysis.py"),
-                ("5", ROOT / "data/ideas/5/break_depth_mining.py"),
-                ("whiplash", ROOT / "data/ideas/whiplash/shock_index.py")]
+IDEA_SCRIPTS = [("1", ROOT / "analysis/1/rod_replace_analysis.py"),
+                ("5", ROOT / "analysis/5/break_depth_mining.py"),
+                ("whiplash", ROOT / "analysis/whiplash/shock_index.py")]
 
 
 def run(cmd: list[str], env: dict, label: str):

@@ -16,8 +16,12 @@ demo_data/
 .pytest_cache/
 # Idea scripts now write to <out-dir>/ideas/ via build_artifacts.py; their old out/ folders hold
 # well-level data and crew text and should not be published
-data/ideas/*/out/
-data/ideas/whiplash/out/
+analysis/*/out/
 
 # Canary API token (local only)
 canary/.api_token
+
+# Drafting material kept locally only
+/data/
+/data1/
+/docs/

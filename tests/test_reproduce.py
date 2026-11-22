@@ -29,7 +29,7 @@ def prog():
 
 
 def test_central_price_matches_idea_common():
-    assert abs(OIL_CAD_M3 - 438.46) < 0.1          # data/ideas/common.py OIL_CAD_M3
+    assert abs(OIL_CAD_M3 - 438.46) < 0.1          # analysis/common.py OIL_CAD_M3
 
 
 # ---------------------------------------------------------------- Idea 1

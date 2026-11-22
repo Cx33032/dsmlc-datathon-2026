@@ -1,6 +1,6 @@
 """Shared paths, cleaning rules, price assumptions and plot style for all idea scripts.
 
-Every script does:  sys.path.insert(0, <data/ideas>); import common
+Every script does:  sys.path.insert(0, <analysis>); import common
 """
 import os
 from pathlib import Path
@@ -10,7 +10,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def _data_dir() -> Path:
