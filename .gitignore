@@ -25,3 +25,6 @@ canary/.api_token
 /data/
 /data1/
 /docs/
+
+# Local Claude Code settings
+/.claude/
