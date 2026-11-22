@@ -4,7 +4,7 @@
 **DSMLC Datathon 2026 · dataset: Strathcona Resources**
 
 **Team:** _Yiming Jin, Ben Bui, Ahron Ramos, Jade Huang_  
-**Video (5 min):** _[YouTube](https://www.youtube.com/watch?v=4WhF7hAoPDo)_ · **Slides:** _<link>_
+**Video (5 min):** _[YouTube](https://www.youtube.com/watch?v=4WhF7hAoPDo)_ · **Slides:** _[Slides](https://github.com/Cx33032/dsmlc-datathon-2026/blob/main/Demo%20Slides.pdf)_
 
 ---
 
