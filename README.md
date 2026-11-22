@@ -8,6 +8,31 @@
 
 ---
 
+## The solution
+
+**Stop repairing the same rod strings over and over.** On any well with **3 or more rod repairs in the last 12
+months**, run a **full new rod string at the next pull** instead of another repair.
+
+- **Why:** after a new string, the next rod repair comes at **0.49×** the rate seen after a repair (Cox model on
+  chronic wells, 95% CI 0.42–0.58), so about half as many repairs.
+- **Where:** **145 chronic wells** today, with 678 rod repairs between them in the last year.
+- **Worth:** **C$7.43M net over 2 years** (C$5.89M even at the weakest plausible effect). A new string pays for
+  itself on any well that fails more than about **once a year**, and every program well fails at least 3 times.
+- **How, at the pull:** if the well's breaks sit inside one ≤150 m band (54 wells), a section plus rod guides
+  there may be enough. If corrosion is coded or the crew notes mention pitting, add an inhibitor and a
+  corrosion-resistant rod grade.
+
+Two daily habits around it, in the same app:
+- **Every morning, review the top 2 outages in Today's queue.** They hold **52%** of the oil at risk, against 43%
+  when ranking by the first day's reported loss.
+- **After a facility trip, check the wells still down 3 days after 75% of their peers are back.** 73 such cases
+  lost 2,377 m³ (about C$1.04M); 50 of them had nothing wrong logged on the well.
+
+All of it runs in one Streamlit app (`streamlit run app/app.py`). The 14-day failure risk, alerts and lost-oil
+estimates are loaded into the **Canary Historian**, next to each well's own data.
+
+---
+
 ## In one paragraph
 
 Strathcona's 2,240 heavy-oil wells lose about **485,000 barrels a year** to avoidable downtime. Rods, the steel string
@@ -28,7 +53,7 @@ the operators' own tools.
 | **Today** | When a battery trips, which wells get left behind? | **Facility restarts**: groups simultaneous outages into one incident and flags slow restarts | **73 wells** stayed down 3+ days after 75% of their peers were back |
 | **At the pull** | Patch the rod string again, or replace it? | **Replacement program** + **Well card** | A new string halves the hazard of the next repair (**HR 0.49**). 145 chronic wells: **C$7.43M net over 2 years** |
 | **At the pull** | Where on the string, and which remedy? | Break depths mined from crew notes | Same-well breaks repeat within 50 m **2.9×** more often than chance. 54 wells break inside one ≤150 m band |
-| **Between failures** | Which running wells fail in the next 2 weeks? | **Field monitor**: 14-day early-warning model | Of the 25 wells flagged each day, **29%** fail within 14 days (4.8× the base rate) |
+| **Between failures** | Which running wells fail in the next 2 weeks? | 14-day early-warning model, loaded into Canary as `FailureRisk14d` and `RiskAlert` | Of the 25 wells flagged each day, **29%** fail within 14 days (4.8× the base rate) |
 | **Between failures** | Does volatile operation cause rod failures? | "Mechanical whiplash" test | **Rejected** under a rule set before running: no effect once history is controlled for (HR 0.98) |
 
 ---
@@ -70,10 +95,10 @@ Cutting avoidable downtime is a lever that doesn't need new wells.
 ## The app
 
 A Streamlit app (`app/app.py`) with one page per decision. Every page follows the same layout:
-1. the one question it answers;
-2. three numbered steps on how to use it;
-3. a filter bar;
-4. charts, each with a short note on how to read it.
+1. a title that is the page's question, with the one-sentence answer and the next action under it;
+2. a closed "How to use this page" panel with the steps and the terms;
+3. a filter bar with a reset button;
+4. charts, each with a short note on how to read it, and the worked-out arithmetic in panels you can open.
 
 The sidebar holds two controls:
 - **Oil price:** one slider (default C$69.71/bbl, the WCS Hardisty price less a 15% field-gate haircut). Every
@@ -86,8 +111,7 @@ The sidebar holds two controls:
 | **Facility restarts** | When a battery trips, which wells are still down after their peers came back? A timeline of incidents, the restart curve of each, and the laggard wells | facility, area, cause, minimum wells, years |
 | **Well card** | What should the crew do at the next pull on this well? Full string, section at a known depth, corrosion remedy, each with the evidence it rests on; failure timeline; break-depth strip; crew notes; recent trends | area, chronic only, what is recommended |
 | **Replacement program** | Which wells get a new string, and does it pay? Ranked value per well, the pay-back curve, and a stress test of every assumption | area, failure cause, minimum repairs, also recommended; stress-test panel |
-| **Field monitor** | Where oil is lost, and the 14-day failure watchlist with the reasons behind each score | areas, years |
-| **Evidence** | Queue replay vs hindsight, the Cox model, repeat break depths, crew text vs coded cause, the rejected whiplash test, traps we avoided | measure, reviews per day, model population |
+| **Evidence and data sources** | Queue replay vs hindsight, the Cox model, repeat break depths, crew text vs coded cause, the rejected whiplash test, traps we avoided | measure, reviews per day, model population |
 | **Assumptions & limits** | What could make these numbers wrong, and how we would check | decision |
 
 | Today's queue | Well card |
@@ -349,7 +373,7 @@ for the collector setup.
 ```
 app/app.py, app/ui.py          Streamlit entry point and shared helpers (price, data mode, charts)
 app/views/                     Today's queue, Facility restarts, Well card, Replacement program, Evidence, Limits
-app/dashboard.py               Field monitor page (lost oil + 14-day watchlist)
+app/dashboard.py               former Field monitor page (not in the menu; the watchlist lives in Canary)
 build_artifacts.py             builds everything the app and Canary read
 run_pipeline.py                cleaning, lost oil, early-warning model, queue, facility restarts
 src/                           data, features, losses, model, dispatch, facility, rules, economics, shock, demo
