@@ -116,9 +116,9 @@ The sidebar holds two controls:
 
 | Today's queue | Well card |
 |---|---|
-| ![Today's queue](screenshots/queue.jpg) | ![Well card](screenshots/well_card.jpg) |
+| ![Today's queue](screenshots/queue.png) | ![Well card](screenshots/well_card.png) |
 | **Facility restarts** | **Evidence** |
-| ![Facility restarts](screenshots/facility_restarts.jpg) | ![Evidence](screenshots/evidence.jpg) |
+| ![Facility restarts](screenshots/facility_restarts.png) | ![Evidence](screenshots/evidence.png) |
 
 _Screenshots use the synthetic demo data, so no real wells or crew notes appear in the repository._
 
@@ -380,7 +380,7 @@ src/                           data, features, losses, model, dispatch, facility
 analysis/1, 5, whiplash       replace vs repair, break-depth mining, whiplash test
 canary/                        Canary CSV Collector export, collector config, setup and screen guide
 tests/                         reproduction, leakage and decision-rule tests
-screenshots/                   app screenshots (synthetic data)
+screenshots/                   app screenshots (real data, well IDs and facility names masked)
 DATA_SUMMARY.md                data profile (aggregate statistics only)
 ```
 
@@ -430,4 +430,4 @@ by a regex parser that runs locally.
 
 The competition dataset belongs to Strathcona Resources and is **not** included in this repository, in line with the
 competition terms (see `.gitignore`). `outputs/` holds derived results and is also excluded. Screenshots in
-`screenshots/` use the synthetic demo data.
+`screenshots/` use the real data with well IDs and facility names replaced by placeholders.
