@@ -1,7 +1,7 @@
 """End-to-end pipeline: clean -> events -> losses (topic 2) -> model (topic 1) -> outputs.
 
 Usage:  python run_pipeline.py           (about 3-6 minutes, ~3 GB RAM)
-Outputs land in ./outputs and feed the Streamlit dashboard and the Canary export.
+Outputs land in ./outputs and feed the Streamlit dashboard.
 """
 from __future__ import annotations
 

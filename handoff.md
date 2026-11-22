@@ -1,4 +1,4 @@
-# Handoff: UI polish of the Canary dashboard
+# Handoff: UI polish of the dashboard
 
 Status: done and merged into `main`.
 The goal of the brief: a first-time user can say, within 10 seconds of opening any page, what the page is for, what the main finding is, and what to do next.

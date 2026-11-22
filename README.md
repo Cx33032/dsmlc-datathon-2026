@@ -1,7 +1,7 @@
 # Predict the Break, Protect the Barrel
 ### One platform, three decisions: keeping heavy-oil PCP wells running
 
-**DSMLC Datathon 2026 · Chirality Research × Canary Labs · dataset: Strathcona Resources**
+**DSMLC Datathon 2026 · dataset: Strathcona Resources**
 
 **Team:** _Yiming Jin, Ben Bui, Ahron Ramos, Jade Huang_  
 **Video (5 min):** _<link>_ · **Slides:** _<link>_
@@ -28,8 +28,7 @@ Two daily habits around it, in the same app:
 - **After a facility trip, check the wells still down 3 days after 75% of their peers are back.** 73 such cases
   lost 2,377 m³ (about C$1.04M); 50 of them had nothing wrong logged on the well.
 
-All of it runs in one Streamlit app (`streamlit run app/app.py`). The 14-day failure risk, alerts and lost-oil
-estimates are loaded into the **Canary Historian**, next to each well's own data.
+All of it runs in one Streamlit app (`streamlit run app/app.py`).
 
 ---
 
@@ -43,9 +42,7 @@ operations team with three decisions on three time horizons:
 - **At the pull:** what the crew should do once it is at the well.
 - **Between failures:** which wells to watch.
 
-Every number on screen comes from a reproducible pipeline and is backed by a test. The model's risk scores, alerts
-and lost-oil estimates are exported to the **Canary Historian** as tags, so they can sit next to the well data in
-the operators' own tools.
+Every number on screen comes from a reproducible pipeline and is backed by a test.
 
 | Horizon | Question | What we built | Headline result |
 |---|---|---|---|
@@ -53,7 +50,7 @@ the operators' own tools.
 | **Today** | When a battery trips, which wells get left behind? | **Facility restarts**: groups simultaneous outages into one incident and flags slow restarts | **73 wells** stayed down 3+ days after 75% of their peers were back |
 | **At the pull** | Patch the rod string again, or replace it? | **Replacement program** + **Well card** | A new string halves the hazard of the next repair (**HR 0.49**). 145 chronic wells: **C$7.43M net over 2 years** |
 | **At the pull** | Where on the string, and which remedy? | Break depths mined from crew notes | Same-well breaks repeat within 50 m **2.9×** more often than chance. 54 wells break inside one ≤150 m band |
-| **Between failures** | Which running wells fail in the next 2 weeks? | 14-day early-warning model, loaded into Canary as `FailureRisk14d` and `RiskAlert` | Of the 25 wells flagged each day, **29%** fail within 14 days (4.8× the base rate) |
+| **Between failures** | Which running wells fail in the next 2 weeks? | 14-day early-warning model | Of the 25 wells flagged each day, **29%** fail within 14 days (4.8× the base rate) |
 | **Between failures** | Does volatile operation cause rod failures? | "Mechanical whiplash" test | **Rejected** under a rule set before running: no effect once history is controlled for (HR 0.98) |
 
 ---
@@ -62,16 +59,15 @@ the operators' own tools.
 
 1. [Research questions and motivation](#research-questions-and-motivation)
 2. [The app](#the-app)
-3. [How we used Canary](#how-we-used-canary)
-4. [Findings](#findings)
-5. [Methods](#methods)
-6. [Validation](#validation)
-7. [Limitations and next steps](#limitations-and-next-steps)
-8. [How to run](#how-to-run)
-9. [Repository structure](#repository-structure)
-10. [External resources](#external-resources)
-11. [AI disclosure](#ai-disclosure)
-12. [Data](#data)
+3. [Findings](#findings)
+4. [Methods](#methods)
+5. [Validation](#validation)
+6. [Limitations and next steps](#limitations-and-next-steps)
+7. [How to run](#how-to-run)
+8. [Repository structure](#repository-structure)
+9. [External resources](#external-resources)
+10. [AI disclosure](#ai-disclosure)
+11. [Data](#data)
 
 ---
 
@@ -130,88 +126,6 @@ _Screenshots use the synthetic demo data, so no real wells or crew notes appear 
    corrosion-resistant rod grade.
 4. **Evidence:** every line states its evidence count. With too little evidence the rule says "insufficient data"
    instead of guessing.
-
----
-
-## How we used Canary
-
-Operators don't work in notebooks. They work in a historian, looking at trends and alarms for each well. So the
-pipeline's outputs go **into the Canary Historian as tags**, next to the raw well data, where an operator can trend
-them, alarm on them and build screens around them. Canary is how the analysis reaches the operator.
-
-```mermaid
-flowchart LR
-    A[3 competition parquets] --> B[build_artifacts.py<br/>cleaning, lost oil, model,<br/>queue, rules]
-    B --> C[canary/export_to_canary.py<br/>tags + quality codes]
-    C -->|CSV files| D[Canary CSV Collector]
-    D --> E[(Canary Historian<br/>dataset: Strathcona)]
-    E --> F[Canary Views<br/>asset tree: Area › Well › Measure]
-    F --> G[Canary Axiom screens<br/>field · watchlist · well · data quality]
-    E -->|Historian ODBC| H[Python retraining]
-    H --> B
-    C -.->|replay mode: one day<br/>every few seconds| D
-```
-
-### 1. What we send to the Historian
-
-`canary/export_to_canary.py` writes Canary CSV Collector files, one row per `TagName,Timestamp,Value,Quality`. The
-tag path is `Area.Well.Measure`, so Canary Views can build an asset tree automatically. The default export (2026 to
-date) is **25,188 tags and 6.65 million values**.
-
-| Measures | Source | Why it's there |
-|---|---|---|
-| `Oil_m3d`, `Water_m3d`, `Gas_e3m3d`, `HoursOn`, `PumpEfficiency` | daily well data | The well's own trends |
-| `PumpRPM`, `RodTorque_ftlb`, `MotorCurrent_A`, `CasingPressure_kPa`, `TubingPressure_kPa` | daily well data | Pump health. A reading identical to the day before is a carried-forward manual entry and is sent with **Uncertain** quality (64), so Canary greys it out on trends |
-| `BaselineOil_m3d`, `EstLostOil_m3`, `Downtime`, `LossCategoryCode` | pipeline | Lost oil against the well's own healthy rate, with the cause |
-| `FailureRisk14d`, `RiskRank`, `RiskAlert` | early-warning model | Risk of a failure outage within 14 days. Alert 0 = normal, 1 = watch (top 5%), 2 = alarm (top 2%) |
-| `FailureEvent`, `RepairCost_CAD` | job records | A pulse on each failure day, shown as markers on trends |
-| `Area._Area.*`, `_Field._Total.*` | roll-ups | Oil, lost oil, avoidable lost oil, running wells, wells on watch, wells in alarm, mean risk, per area and field |
-
-Raw readings that are physically impossible (999,999 kPa placeholders, negative volumes) are sent with their raw
-value and **Bad** quality (0). The historian keeps the evidence but trends skip them.
-
-### 2. How it is set up in Canary
-
-- **Historian + CSV Collector:** `canary/csv_collector_config.json` points the collector at a watched folder and
-  creates the `Strathcona` dataset automatically.
-- **Views asset model:** a virtual view splits each tag path on `.`, giving Area › Well › Measure. Every well then
-  has the same measure names, so one Axiom template works for all 2,240 producers.
-- **Axiom screens:**
-  1. **Field overview:** field oil, avoidable lost oil, wells in alarm, and lost oil by area.
-  2. **Watchlist:** wells sorted by `RiskRank`, with `RiskAlert` coloured red or amber, oil vs baseline, and pump
-     efficiency.
-  3. **Well detail** (asset template): oil vs baseline, pump efficiency and failure risk, with failure markers.
-     Stale manual readings show greyed out.
-  4. **Data quality:** count of Uncertain and Bad values per area, which makes the case for automating the manual
-     tags.
-- **Alarms:** an event on `RiskAlert >= 2` per well asset where the licence includes Canary's event features;
-  otherwise Axiom conditional formatting.
-- **Live demo:** `--replay-dir` drops one day's file into the collector folder every few seconds, so tags, roll-ups
-  and alarms update on screen as if the data were streaming.
-- **Closing the loop:** the model's training features (oil, water, hours on, pump efficiency, pump tags, failure
-  history) are all in the historian. A monthly retrain can read them back through **Historian ODBC**.
-
-Step-by-step install, load and screen-building instructions: [canary/README.md](canary/README.md). The organizers'
-setup troubleshooting guide (time zone, clean install, licence reset) is in
-[canary/Canary_Setup_Troubleshooting_Guide.md](canary/Canary_Setup_Troubleshooting_Guide.md).
-
-### 3. How this meets the Best Use of Canary criteria
-
-| Criterion | What we did |
-|---|---|
-| **Technical depth** | Historian, CSV Collector, Views (virtual asset model), Axiom (templated screens), events/alarms and Historian ODBC. Canary quality codes carry data-quality information, not just values |
-| **Design and usability** | Four screens, one per operator question. One asset template for every well. Alarm colours only where action is needed |
-| **Industry relevance** | Real-time monitoring (replay), alarm management (watch/alarm tiers), performance tracking (lost oil vs baseline), operator decision support (watchlist with reasons) |
-| **Project integration** | Canary carries the model's outputs (risk, rank, alert, lost oil) to the operator and is the data source for retraining. It is part of the workflow, not an add-on |
-
-### 4. Status
-
-| Piece | Status |
-|---|---|
-| Canary 26.7 installed and licensed on a team laptop | _Team: confirm_ |
-| Exporter, collector config and replay mode | Built and run: 25,188 tags, 6.65M values for 2026 to date |
-| Import into the Historian, Views asset tree, Axiom screens, alarms | _Team: confirm and add a screenshot here_ |
-| Tags for the newer pages (queue score, chronic flag, pull recommendation, restart laggards) | Next step: the artifacts already exist in `outputs/` and only need adding to the exporter |
 
 ---
 
@@ -328,8 +242,7 @@ decision.
   idea, and the early-warning model, see what daily manual readings miss.
 - **The early-warning model leans on failure history.** Production trends add a smaller lift until the pump tags
   are automated.
-- **Retraining.** The model is trained once on data to 2024. In production it would retrain monthly from Canary
-  through Historian ODBC.
+- **Retraining.** The model is trained once on data to 2024. In production it would retrain monthly on new data.
 
 ---
 
@@ -356,16 +269,6 @@ builds the demo results (about 30 seconds).
 .venv/Scripts/python.exe -m pytest
 ```
 
-**Into Canary:**
-
-```powershell
-.venv/Scripts/python.exe canary/export_to_canary.py --out C:/CanaryImport/Strathcona
-.venv/Scripts/python.exe canary/export_to_canary.py --start 2026-08-01 --replay-dir C:/CanaryImport/Strathcona --replay-from 2026-09-15 --seconds 5
-```
-
-The first command loads 2026 to date; the second is the live-demo replay. See [canary/README.md](canary/README.md)
-for the collector setup.
-
 ---
 
 ## Repository structure
@@ -373,12 +276,11 @@ for the collector setup.
 ```
 app/app.py, app/ui.py          Streamlit entry point and shared helpers (price, data mode, charts)
 app/views/                     Today's queue, Facility restarts, Well card, Replacement program, Evidence, Limits
-app/dashboard.py               former Field monitor page (not in the menu; the watchlist lives in Canary)
-build_artifacts.py             builds everything the app and Canary read
+app/dashboard.py               former Field monitor page with the 14-day watchlist (not in the menu)
+build_artifacts.py             builds everything the app reads
 run_pipeline.py                cleaning, lost oil, early-warning model, queue, facility restarts
 src/                           data, features, losses, model, dispatch, facility, rules, economics, shock, demo
 analysis/1, 5, whiplash       replace vs repair, break-depth mining, whiplash test
-canary/                        Canary CSV Collector export, collector config, setup and screen guide
 tests/                         reproduction, leakage and decision-rule tests
 screenshots/                   app screenshots (real data, well IDs and facility names masked)
 DATA_SUMMARY.md                data profile (aggregate statistics only)
@@ -388,8 +290,6 @@ DATA_SUMMARY.md                data profile (aggregate statistics only)
 
 ## External resources
 
-- Canary Labs, *How to Configure the CSV Collector (v26)*, help-centre article (collector settings and quality
-  codes); Canary installation guide supplied by the organizers
 - PetroWiki: progressing cavity pumps; the competition Dataset Handbook (PCP, rod string, water cut)
 - Price inputs (cited in `analysis/common.py`):
   - WTI from OilPriceAPI (2026-11-19);
@@ -408,7 +308,6 @@ This project was built with help from **Claude (Anthropic) via Claude Code**, wo
 **What Claude wrote most of:**
 - the data pipeline and the data profile;
 - the Streamlit app, the queue and facility modules, the decision rule and the synthetic-data generator;
-- the Canary exporter;
 - the whiplash test and the test suite;
 - much of the documentation.
 

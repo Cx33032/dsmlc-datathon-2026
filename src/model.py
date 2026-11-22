@@ -61,7 +61,7 @@ def train(F: pd.DataFrame) -> tuple[lgb.Booster, dict]:
             "train_period": f"{TRAIN_START}..{TRAIN_END}", "valid_period": f"..{VALID_END}",
             "test_period": f"{TEST_START.date()}..{te['production_date'].max().date()}"}
     # two-tier thresholds fixed on the validation year (model m0 never trained on it):
-    #   watch = top 5% of well-days (review list), alarm = top 2% (operator alarm in Canary)
+    #   watch = top 5% of well-days (review list), alarm = top 2% (operator alarm)
     pv = m0.predict(va[FEATURES], num_iteration=best)
     info["alert_threshold"] = float(np.quantile(pv, 0.95))
     info["alarm_threshold"] = float(np.quantile(pv, 0.98))

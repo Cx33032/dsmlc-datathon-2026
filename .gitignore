@@ -18,8 +18,8 @@ demo_data/
 # well-level data and crew text and should not be published
 analysis/*/out/
 
-# Canary API token (local only)
-canary/.api_token
+# Local-only integration files
+/canary/
 
 # Drafting material kept locally only
 /data/

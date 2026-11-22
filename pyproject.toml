@@ -1,7 +1,7 @@
 [project]
 name = "dsmlc-datathon-2026"
 version = "0.1.0"
-description = "Canary dashboard: well queue, facility restarts, replacement program"
+description = "Dashboard: well queue, facility restarts, replacement program"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "duckdb==2.0.1",
