@@ -1,4 +1,5 @@
-# Predict the Break, Protect the Barrel
+# BarrelWise
+## Predict the Break, Protect the Barrel
 ### One platform, three decisions: keeping heavy-oil PCP wells running
 
 **DSMLC Datathon 2026 · dataset: Strathcona Resources**
