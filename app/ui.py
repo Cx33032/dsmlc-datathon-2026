@@ -48,6 +48,7 @@ CSS = f"""<style>
 [data-testid="stMain"] h2 {{ font-size: 1.75rem; }}
 .cn-summary {{ font-size: 1.15rem; line-height: 1.55; margin: -0.5rem 0 0.25rem; max-width: 62rem; }}
 .cn-summary b {{ font-weight: 650; }}
+[data-testid="stPopover"] button[kind="tertiary"], [data-testid="stPopover"] [data-testid="stPopoverButton"] {{ font-size: .85rem; opacity: .85; }}
 .cn-label {{ font-size: .8rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }}
 </style>"""
 
@@ -114,8 +115,9 @@ def sidebar():
     st.sidebar.slider("Oil price used for every C$ figure (C$ per bbl)", 20.0, 120.0, DEFAULT_NETBACK_CAD_PER_BBL, 0.5,
                       key="price_bbl",
                       help="Default: WCS Hardisty (WTI 83.45 - 26.20 USD) × 1.4325 USD/CAD, less a 15% field-gate "
-                           "haircut (our assumption). Every C$ figure in the app changes with this price.")
-    st.sidebar.caption(f"= C${price_m3():,.0f} per m³. Lost oil is valued as lost revenue, before operating cost.")
+                           "haircut (our assumption). Every C$ figure in the app changes with this price. Lost oil is valued as lost "
+                           "revenue, before operating cost.")
+    st.sidebar.caption(f"= C${price_m3():,.0f} per m³")
 
 
 # ---------------------------------------------------------------- page layout
@@ -161,9 +163,12 @@ def empty(what: str, change: str):
     st.info(f"{what} {change}", icon=":material/filter_alt_off:")
 
 
-def explain(text: str):
-    """A one-line 'how to read this chart' note under a chart."""
-    st.caption(f":material/info: {text}")
+def explain(text: str, label: str = "How to read this"):
+    """An explanation kept out of sight: a small closed info popover the user can open. Nothing shows by default."""
+    import hashlib
+    key = "exp_" + hashlib.md5((label + text).encode()).hexdigest()[:10]
+    with st.popover(label, icon=":material/info:", type="tertiary", key=key):
+        st.markdown(text)
 
 
 def hbar(labels, values, colors=None, text=None, hover=None, title=None, xaxis=None, height=None, customdata=None):

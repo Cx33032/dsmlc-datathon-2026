@@ -87,10 +87,11 @@ m2.metric("Lagging wells", len(fl), f"of {len(fa):,} wells taken down", delta_ar
 m3.metric("Total oil lost", f"{onset_m3 + lag_m3:,.0f} m³", ui.money((onset_m3 + lag_m3) * pm3), delta_arrow="off",
           delta_color="off", help="First day + lagging. Days in between, while the facility itself was being "
                                   "restarted, are not counted.")
-st.markdown(f"Total oil lost = {onset_m3:,.0f} m³ on the day the facilities went down ({ui.mmoney(onset_m3 * pm3)}) "
-            f"+ {lag_m3:,.0f} m³ while the lagging wells waited ({ui.mmoney(lag_m3 * pm3)}) = "
-            f"**{onset_m3 + lag_m3:,.0f} m³ ({ui.mmoney((onset_m3 + lag_m3) * pm3)})**.")
-ui.explain("Lagging loss = days a well stayed down after 75% of the other wells were back × its usual daily rate.")
+ui.explain(f"Total oil lost = {onset_m3:,.0f} m³ on the day the facilities went down ({ui.mmoney(onset_m3 * pm3)}) "
+           f"+ {lag_m3:,.0f} m³ while the lagging wells waited ({ui.mmoney(lag_m3 * pm3)}) = "
+           f"**{onset_m3 + lag_m3:,.0f} m³ ({ui.mmoney((onset_m3 + lag_m3) * pm3)})**.\n\n"
+           "Lagging loss = days a well stayed down after 75% of the other wells were back × its usual daily rate.",
+           label="How the total is worked out")
 
 # ---------------------------------------------------------------- the incident to look at (set here, shown below)
 order = f.sort_values(["laggards", "wells"], ascending=False)
@@ -164,8 +165,7 @@ else:
                "That needs a rig. The sooner the crew finds it, the sooner they can book the rig." if r["downhole"] else
                "Nothing wrong with the well itself was logged, so a restart check (power, valves, pump start-up) "
                f"around {t75 + pd.Timedelta(days=3):%d %b} could have brought it back sooner.")
-        with st.container(border=True):
-            st.markdown(f"**Why {r['uwi']} is on this list**")
+        with st.expander(f"Why {r['uwi']} is on this list"):
             st.markdown(
                 f"- It went down on **{r['onset']:%d %b %Y}** with {int(ri['wells']) - 1} other wells at "
                 f"**{r['facility_name']}** ({ri['main_cause']}).\n"
@@ -174,8 +174,8 @@ else:
                 f"- At its usual rate of **{r['rate_h']:.1f} m³/day**, those {r['days_after_peers']:.0f} days cost "
                 f"**{r['lag_loss_m3']:,.1f} m³** ({ui.mmoney(r['lag_loss_m3'] * pm3)}).\n"
                 f"- Its own logged downtime reason: **{r['cause']}**. {why}")
-            if st.button("Open well card", icon=":material/arrow_forward:", key="fac_open"):
-                ui.open_well(str(r["uwi"]))
+        if st.button(f"Open the well card for {r['uwi']}", icon=":material/arrow_forward:", key="fac_open"):
+            ui.open_well(str(r["uwi"]))
         rep = lag["uwi"].value_counts()
         if (rep >= 2).any():
             ui.explain(f"{int((rep >= 2).sum())} wells lagged in two or more incidents. Restart problems repeat, so "
@@ -231,26 +231,22 @@ with right:
 
 # ---------------------------------------------------------------- why facilities go down
 st.header("Why did the facilities go down?")
-c_l, c_r = st.columns([3, 2])
-with c_l:
-    by = (f.groupby("main_cause").agg(incidents=("incident", "size"), wells=("wells", "sum"),
-                                     m3=("onset_lost_oil_m3", "sum")).reset_index().sort_values("incidents", ascending=False))
-    fig = ui.hbar(by["main_cause"], by["incidents"],
-                  text=[f"{w:,} wells down · {m:,.0f} m³ first day" for w, m in zip(by["wells"], by["m3"])],
-                  xaxis="facility incidents", hover="%{y}: %{x} incidents<extra></extra>",
-                  title=f"{by.iloc[0]['main_cause']} is the most common logged reason")
-    fig.update_xaxes(range=[0, by["incidents"].max() * 1.9])
-    ui.show(fig)
-with c_r:
-    st.markdown("**How to read the reasons**")
-    st.markdown("- The reason is the downtime category logged most often for the affected wells on the first day.\n"
-                "- **Facility & Turnarounds**: the battery or plant itself stopped. This is either an unplanned upset "
-                "or trip (for example a compressor, treater or tank-level shutdown) or a planned turnaround.\n"
-                "- **Power**: a power outage on the lease.\n"
-                "- **Pipeline/Flowline**: the line taking fluid away was down.\n"
-                "- **Facility - Capacity**: the facility could not take more fluid.")
-    st.caption("The data records the category only, not which piece of equipment tripped. To find the root cause, "
-               "use the facility's own alarm and control-system logs.")
+by = (f.groupby("main_cause").agg(incidents=("incident", "size"), wells=("wells", "sum"),
+                                 m3=("onset_lost_oil_m3", "sum")).reset_index().sort_values("incidents", ascending=False))
+fig = ui.hbar(by["main_cause"], by["incidents"],
+              text=[f"{w:,} wells down · {m:,.0f} m³ first day" for w, m in zip(by["wells"], by["m3"])],
+              xaxis="facility incidents", hover="%{y}: %{x} incidents<extra></extra>",
+              title=f"{by.iloc[0]['main_cause']} is the most common logged reason")
+fig.update_xaxes(range=[0, by["incidents"].max() * 1.9])
+ui.show(fig)
+ui.explain("- The reason is the downtime category logged most often for the affected wells on the first day.\n"
+           "- **Facility & Turnarounds**: the battery or plant itself stopped. This is either an unplanned upset "
+           "or trip (for example a compressor, treater or tank-level shutdown) or a planned turnaround.\n"
+           "- **Power**: a power outage on the lease.\n"
+           "- **Pipeline/Flowline**: the line taking fluid away was down.\n"
+           "- **Facility - Capacity**: the facility could not take more fluid.\n\n"
+           "The data records the category only, not which piece of equipment tripped. To find the root cause, "
+           "use the facility's own alarm and control-system logs.", label="How to read the reasons")
 
 with st.expander("How incidents and lagging wells are defined"):
     st.markdown(f"- **Incident:** at least {d['min_wells']} wells, and at least {d['min_share']:.0%} of the facility's "

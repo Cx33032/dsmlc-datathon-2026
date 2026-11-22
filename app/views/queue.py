@@ -24,13 +24,14 @@ default_day = recent.groupby(recent["production_date"].dt.date).size().idxmax() 
 DECIDE, REPLAY = "What was known that day", "Add what happened next (replay)"
 
 with ui.filters(reset_keys=["q_day", "q_area", "q_cause", "q_k", "q_chronic", "q_mode"]):
-    c1, c2, c3, c4 = st.columns([1.1, 1.4, 1.4, 1])
+    c1, c2, c3, c4 = st.columns([1.1, 1.4, 1.4, 1], vertical_alignment="bottom")
     day = c1.date_input("Day", value=default_day, min_value=days[0], max_value=days[-1], key="q_day")
     day_t = t[t["production_date"].dt.date == day]
     areas = c2.multiselect("Area", sorted(day_t["field_operating_area"].unique()), placeholder="All areas", key="q_area")
     causes = c3.multiselect("Cause", sorted(day_t["loss_category"].unique()), placeholder="All causes", key="q_cause")
-    k = c4.number_input("Outages you can review today", 1, 10, 2, key="q_k",
-                        help="The top ones are drawn in blue and get a reason card below the chart.")
+    k = c4.number_input("Reviews today", 1, 10, 2, key="q_k",
+                        help="How many outages you can review today. The top ones are drawn in blue and get a reason "
+                             "card below the chart.")
     d1, d2 = st.columns([1, 2.6])
     chronic_only = d1.toggle("Show only chronic rod wells", key="q_chronic", help=ui.TERMS["Chronic rod well"])
     mode = d2.segmented_control("Show", [DECIDE, REPLAY], required=True, default=DECIDE, key="q_mode",
@@ -90,7 +91,8 @@ if replay:
 fig.update_xaxes(range=[0, max(q["score_m3"].max(), q["exposure_m3"].max() if replay else 0) * 1.45])
 ev = ui.show(fig, on_select="rerun", selection_mode="points", key="queue_chart")
 ui.explain("Each bar is one new outage, ranked by oil at risk. Blue = the outages you can review today. "
-           "Filters re-rank the list, so 'top 2' means the top 2 of what you can see."
+           "Filters re-rank the list, so 'top 2' means the top 2 of what you can see. Click any bar to see that "
+           "outage on its own below."
            + (" Orange diamonds show what each outage actually lost. Nobody knew this on the day." if replay else ""))
 if replay:
     oc1, oc2 = st.columns(2)
@@ -108,23 +110,23 @@ if ev and ev.selection and ev.selection.points:
     if y in lab:
         picked = q.iloc[lab.index(y)]
 cards = [picked] if picked is not None else [r for _, r in top.iterrows()]
-st.header(f"Why #{int(picked['rank'])} ranks there" if picked is not None else f"Why the top {len(cards)} rank there")
-if picked is None:
-    st.caption("Click any bar in the chart to see the reason for that outage.")
+st.header(f"#{int(picked['rank'])}, selected in the chart" if picked is not None else f"Your top {len(cards)} to review")
 for r in cards:
     with st.container(border=True):
         a, b = st.columns([3, 1])
         badge = " :blue-badge[chronic rod well]" if r["chronic"] else ""
-        a.markdown(f"**#{r['rank']} · {r['uwi']}** · {r['field_operating_area']}{badge}")
-        a.markdown(f"Reported **{r['reason']}** with **{r['first_day_hours']:.0f} h** down on day 1. Outages like this "
-                   f"stayed down **{r['est_down_h']:.1f} h** more over the next 3 days (based on {r['cell_n']:,} past "
-                   f"cases). The well's healthy rate is **{r['rate_h']:.1f} m³/d**, so **{r['score_m3']:.1f} m³** "
-                   f"(≈ {ui.money(r['at_risk_cad'])}) is at risk.")
-        a.caption(f"{r['rod_repairs_365']} rod repairs in the year before this outage.")
+        a.markdown(f"**#{r['rank']} · {r['uwi']}** · {r['field_operating_area']}{badge} · "
+                   f"**{r['score_m3']:.1f} m³** at risk (≈ {ui.money(r['at_risk_cad'])}) · {r['reason']}")
         if r["pull_recommendation"]:
             a.success(r["pull_recommendation"], icon=":material/build:")
         if b.button("Open well card", key=f"wc_{r['uwi']}_{r['rank']}", icon=":material/arrow_forward:"):
             ui.open_well(r["uwi"])
+        with a:
+            ui.explain(f"Reported **{r['reason']}** with **{r['first_day_hours']:.0f} h** down on day 1. Outages like "
+                       f"this stayed down **{r['est_down_h']:.1f} h** more over the next 3 days (based on "
+                       f"{r['cell_n']:,} past cases). The well's healthy rate is **{r['rate_h']:.1f} m³/d**, so "
+                       f"**{r['score_m3']:.1f} m³** (≈ {ui.mmoney(r['at_risk_cad'])}) is at risk.\n\n"
+                       f"{r['rod_repairs_365']} rod repairs in the year before this outage.", label="Why it ranks here")
 
 # ---------------------------------------------------------------- facility restart laggards on this day
 lagq = ui.art("facility_laggards.parquet")

@@ -214,6 +214,7 @@ if len(worst):
     ui.show(fig)
     ui.explain("Worst case = the weakest new-string effect, repair job cost only, double string cost and 1 year of "
                "benefit, all at once.")
-st.caption(f"From the job records: a repair job costs C${econ['repair_job_cost']:,.0f} on average (2023 on, cost > 0), "
+ui.explain(f"From the job records: a repair job costs C\\${econ['repair_job_cost']:,.0f} on average (2023 on, cost > 0), "
            f"each repair loses {econ['lost_m3_per_repair_mean']:.1f} m³ of oil, and a new string costs "
-           f"C${econ['inc_cost']:,.0f} more than a repair. Lost oil is valued at C${pm3:,.0f}/m³.")
+           f"C\\${econ['inc_cost']:,.0f} more than a repair. Lost oil is valued at C\\${pm3:,.0f}/m³.",
+           label="Where the costs come from")

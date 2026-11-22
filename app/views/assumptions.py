@@ -54,11 +54,9 @@ with ui.filters():
 shown = [r for r in rows if pick == "All" or HORIZON.get(r[0]) == pick]
 ui.summary(top_slot, f"{len(rows)} assumptions could change the numbers. Each card names one and the check that "
                      "would test it.")
-st.caption(f"Showing {len(shown)} of {len(rows)} assumptions")
 cols = st.columns(2)
 for i, (title, what, check) in enumerate(shown):
     with cols[i % 2].container(border=True):
         st.caption(HORIZON.get(title, ""))
         st.markdown(f"**{title}**")
-        st.write(what)
-        st.caption(f"How we would check it: {check}")
+        ui.explain(f"{what}\n\n**How we would check it:** {check}", label="Details")

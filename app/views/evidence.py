@@ -40,10 +40,8 @@ dinfo = ui.art("dispatch_info.json") or {}
 
 def answer(question: str, finding: str, how: str, ok: bool = True):
     """The header of every tab: the question, the answer in one sentence, and how it was tested."""
-    with st.container(border=True):
-        st.markdown(f"**Question.** {question}")
-        (st.success if ok else st.warning)(finding, icon=":material/check_circle:" if ok else ":material/cancel:")
-        st.markdown(f"**How we tested it.** {how}")
+    (st.success if ok else st.warning)(finding, icon=":material/check_circle:" if ok else ":material/cancel:")
+    ui.explain(f"**Question.** {question}\n\n**How we tested it.** {how}", label="How we tested it")
 
 
 def forest(rows, title, ref=1.0, xlabel="hazard ratio (log scale)"):
@@ -92,8 +90,7 @@ if cards:
                + ("The whiplash idea did not, so the app leaves it out. " if v and not v.get("keep") else "")
                + "Each tab below shows the test behind one claim.")
 
-with st.container(border=True):
-    st.markdown("**Where the numbers come from**")
+with st.expander("Where the numbers come from", icon=":material/database:"):
     if ui.is_demo():
         st.markdown("Demo mode: synthetic wells, outages, rod jobs and crew-style notes with the same columns as the "
                     "real files. The numbers are examples only.")
@@ -221,8 +218,8 @@ with tab_rod:
             ui.explain("Every line starts at 100% on the day of the job and drops each time a well needs another rod "
                        "repair. The blue line (new string) stays higher for longer: those wells run longer between "
                        "failures.")
-        st.caption("Wells that got a new string may differ in ways the data does not record (operators chose them). "
-                   "The Assumptions page says how a pilot would confirm the effect.")
+        ui.explain("Wells that got a new string may differ in ways the data does not record (operators chose them). "
+                   "The Assumptions page says how a pilot would confirm the effect.", label="Caveat")
 
 # ---------------------------------------------------------------- idea 5
 with tab_depth:
@@ -302,9 +299,9 @@ with tab_shock:
                "Before looking at results we wrote down the rule: keep the idea only if (1) wells are clearly more "
                "volatile in the month before a failure than in their own normal months, and (2) volatility still "
                "predicts failures inside the new-string Cox model. Both had to pass.", ok=keep)
-        st.markdown("**The shock index.** For each well and day: how far today's swings in RPM, torque, current and run "
-                    "hours are from that well's own usual swings, averaged into one number (0 = normal for this well, "
-                    "positive = choppier than usual). It uses only data from before the day it describes.")
+        ui.explain("For each well and day: how far today's swings in RPM, torque, current and run hours are from that "
+                   "well's own usual swings, averaged into one number (0 = normal for this well, positive = choppier "
+                   "than usual). It uses only data from before the day it describes.", label="What the shock index is")
         if "cc_or" in v:
             rows = [("Test 1: month before a failure vs the same well's normal months", v["cc_or"], v["cc_or_lo"],
                      v["cc_or_hi"])]
@@ -361,8 +358,7 @@ with tab_shock:
 
 # ---------------------------------------------------------------- traps
 with tab_traps:
-    st.markdown("**Ways this data could have fooled us, and what we did about each.** Each card names a trap in the "
-                "data, then (in grey) the fix.")
+    st.markdown("**Ways this data could have fooled us.** Open each card's note for what we did about it.")
     traps = [
         ("The failure log only starts mid-2025", "Rod events come from the job records (2021–26), which go back "
                                                  "further; tests that need the failure log start in Jun 2025."),
@@ -388,4 +384,4 @@ with tab_traps:
     for i, (trap, fix) in enumerate(traps):
         with cols[i % 2].container(border=True):
             st.markdown(f"**{trap}**")
-            st.caption(fix)
+            ui.explain(fix, label="What we did")

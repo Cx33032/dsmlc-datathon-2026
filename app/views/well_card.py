@@ -82,17 +82,16 @@ ui.summary(top_slot, f"<b>{uwi}</b> ({area}), {lam} rod repairs in the last 12 m
                      + (f" A new string is worth <b>{ui.money(net)}</b> over {econ['horizon_yr']:.0f} years."
                         if net > 0 and acts[0].status == "recommend" else ""))
 st.header("Recommended at the next pull")
-st.caption(f"As of {econ['asof']}. The same rule writes the recommendation on Today's queue.")
 icon = {"recommend": ":material/check_circle:", "not indicated": ":material/remove:",
         "insufficient data": ":material/help:"}
 cols = st.columns(3)
 for c, a in zip(cols, acts):
     with c.container(border=True):
         label = {"string": "Rod string", "section": "Where on the string", "corrosion": "Corrosion remedy"}[a.kind]
-        st.markdown(f"**{label}**")
+        st.markdown(f"**{label}**", help=f"Based on: {a.evidence}. As of {econ['asof']}; the same rule writes the "
+                                         "recommendation on Today's queue.")
         (st.success if a.status == "recommend" else st.info if a.status == "not indicated" else st.warning)(
             a.text, icon=icon[a.status])
-        st.caption(f"Based on: {a.evidence}")
 
 # ---------------------------------------------------------------- economics
 hz, hr = econ["horizon_yr"], econ["hr_chronic"]
@@ -100,14 +99,12 @@ fc = fail_cost(econ, pm3)
 e1, e2, e3, e4 = st.columns(4)
 e1.metric("Rod repairs, last 12 months", lam)
 e2.metric(f"Repairs avoided, {hz:.0f} yr", f"{avoided:.1f}",
-          f"= {lam} × (1 − {hr:.3f}) × {hz:.0f}", delta_arrow="off", delta_color="off",
-          help=f"Repairs per year × (1 − hazard ratio {hr:.2f}) × {hz:.0f} years. Worked out below. " + ui.TERMS["HR"])
+          help=f"= {lam} × (1 − {hr:.3f}) × {hz:.0f}. Repairs per year × (1 − hazard ratio {hr:.2f}) × {hz:.0f} "
+               "years. Worked out below. " + ui.TERMS["HR"])
 e3.metric(f"New string net value, {hz:.0f} yr", ui.money(net),
-          f"{ui.money(net_hi)} if the effect is at its weakest", help=ui.TERMS["Net value"],
-          delta_arrow="off", delta_color="off")
+          help=ui.TERMS["Net value"] + f" {ui.money(net_hi)} if the effect is at its weakest.")
 e4.metric("Cost of one more rod failure", ui.money(fc),
-          f"job {ui.money(econ['repair_job_cost'])} + lost oil {ui.money(fc - econ['repair_job_cost'])}",
-          delta_arrow="off", delta_color="off")
+          help=f"Repair job {ui.money(econ['repair_job_cost'])} + lost oil {ui.money(fc - econ['repair_job_cost'])}.")
 with st.expander("How these four numbers are worked out", icon=":material/calculate:"):
     a, b = st.columns(2)
     with a:
@@ -178,10 +175,9 @@ with tab_notes:
         kw = re.compile(r"pit|corro|rust|@|\bat\b|\d{2,4}\s*m\b|jt|joint|#", re.I)
         notes["score"] = notes["failure_comments"].str.contains(kw).astype(int) + notes["depth_m"].notna()
         top = notes.sort_values(["score", "fd"], ascending=False).head(3)
-        if ui.is_demo():
-            st.caption("Synthetic crew-style notes (demo mode).")
-        else:
-            st.caption("Verbatim from the failure log (private mode only; never sent to an external service).")
+        ui.explain("Synthetic crew-style notes (demo mode)." if ui.is_demo() else
+                   "Verbatim from the failure log (private mode only; never sent to an external service).",
+                   label="About these notes")
         for r in top.itertuples():
             st.markdown(f"> {r.failure_comments}  \n> {r.fd:%d %b %Y}, coded *{r.cause}*"
                         + (f", located at {r.depth_m:.0f} m" if pd.notna(r.depth_m) else ""))
